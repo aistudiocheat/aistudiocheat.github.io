@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: artikel
 title: Bahaya Aplikasi Android WebView Hasil AI Instan Rawan Ditolak Google Play
 ---
 
