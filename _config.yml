@@ -1,7 +1,107 @@
-title: Studio Cheat | AI Automation & DevOps
-description: Blog Edukasi Android DevOps, Konversi Google AI Studio ke Versi Produksi, dan Strategi Monetisasi AdMob.
+title: "Studio Cheat | AI Automation & DevOps"
+description: "Professional Android Production Release & GitHub Actions CI/CD Framework"
 show_downloads: false
+
+# Menggunakan CSS kustom super premium untuk menyulap tampilan Cayman menjadi Dark Mode Modern
 remote_theme: pages-themes/cayman@v0.2.0
 plugins:
   - jekyll-remote-theme
+
+# JALUR UTAMA INJEKSI DESAIN PROFESSIONAL (DARK CONFIG)
+inline_css: |
+  body { 
+    background-color: #0b0f19 !important; 
+    color: #cbd5e1 !important; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  }
+  .page-header {
+    background-color: #0b0f19 !important;
+    background-image: radial-gradient(circle at top right, #1e293b, #0b0f19) !important;
+    padding: 3.5rem 2rem !important;
+    border-bottom: 1px solid #1e293b !important;
+    text-align: left !important;
+  }
+  .project-name { 
+    color: #38bdf8 !important; 
+    font-size: 2.2rem !important; 
+    font-weight: 800 !important;
+    letter-spacing: -0.05em !important;
+  }
+  .project-tagline { 
+    color: #94a3b8 !important; 
+    font-size: 1.1rem !important;
+    opacity: 1 !important;
+    margin-bottom: 0 !important;
+  }
+  .main-content {
+    max-width: 46rem !important;
+    padding: 2rem 1.5rem !important;
+  }
+  h1, h2, h3 { 
+    color: #f8fafc !important; 
+    font-weight: 700 !important; 
+    letter-spacing: -0.03em !important;
+    border-bottom: none !important;
+  }
+  h1 { font-size: 1.8rem !important; margin-top: 1.5rem !important; }
+  h2 { font-size: 1.4rem !important; color: #38bdf8 !important; margin-top: 2rem !important; }
+  h3 { font-size: 1.15rem !important; color: #e2e8f0 !important; }
+  a { color: #38bdf8 !important; text-decoration: none !important; transition: color 0.2s !important; }
+  a:hover { color: #7dd3fc !important; text-decoration: underline !important; }
+  
+  /* Desain Tombol Fastwork Premium */
+  a[href*="fastwork.id"] {
+    display: inline-block !important;
+    background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+    color: #ffffff !important;
+    padding: 0.8rem 1.6rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+    margin: 1rem 0 !important;
+  }
+  a[href*="fastwork.id"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(3, 105, 161, 0.3) !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+  }
+  
+  /* Desain Kotak Koding / Code Block */
+  code {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    padding: 0.2rem 0.4rem !important;
+    border-radius: 4px !important;
+    font-size: 0.9em !important;
+  }
+  pre {
+    background-color: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    overflow-x: auto !important;
+  }
+  pre code { background-color: transparent !important; padding: 0 !important; }
+  
+  /* Desain List Artikel */
+  ul { list-style-type: none !important; padding-left: 0 !important; }
+  ul li {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-bottom: 0.75rem !important;
+    transition: transform 0.2s, border-color 0.2s !important;
+  }
+  ul li:hover {
+    transform: translateX(4px) !important;
+    border-color: #38bdf8 !important;
+  }
+  hr { border-top: 1px solid #1e293b !important; }
+  .site-footer { border-top: 1px solid #1e293b !important; color: #475569 !important; }
+
+# Tautan Menuju Toko Fastwork Anda
 fastwork_url: "https://fastwork.id/user/aistudiocheat/ai-automation-23623063?utm_source=app_sharing"
