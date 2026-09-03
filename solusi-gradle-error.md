@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: artikel
 title: Solusi Error Gradle Google AI Studio ke GitHub Actions
 ---
 
