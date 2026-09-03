@@ -2,5 +2,9 @@ title: "Ai Studio Cheat"
 description: "Professional Android Production Release & GitHub Actions CI/CD Framework"
 show_downloads: false
 remote_theme: pages-themes/cayman@v0.2.0
+
+# AKTIVASI FITUR SEO OTOMATIS GITHUB PAGES
 plugins:
   - jekyll-remote-theme
+  - jekyll-seo-tag
+permalink: /:title/
