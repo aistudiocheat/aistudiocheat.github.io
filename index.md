@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Ai Studio Cheat
+title: AI Studio Cheat
 ---
 
 # Selamat Datang di Studio Cheat! 🚀
@@ -11,13 +11,24 @@ Blog ini didedikasikan untuk mengedukasi para *creators*, agensi, dan developer 
 Banyak developer terjebak biaya *maintenance* build manual yang mahal. Di sini, kami membagikan insight tentang pentingnya **DevOps Automation (GitHub Actions CI/CD)** agar Anda bisa melakukan *build* aplikasi mandiri secara gratis selamanya tanpa ketergantungan pada developer lama.
 
 ### 🛠️ Layanan Premium Kami:
-Jika Anda tidak ingin pusing menghadapi ratusan *error* Gradle, kebocoran API Key, atau konfigurasi *Native Debug Symbols*, kami menyediakan jasa optimasi instan.
+Jika Anda tidak ingin pusing menghadapi ratusan *error* Gradle, kebocoran API Key, atau konfigurasi *Native Debug Symbols*, kami menyediakan jasa optimasi instan dengan sistem sekali klik dari kasur via Termux.
 
 👉 **[Pesan Jasa DevOps Auto-Build & Production Ready di Fastwork Kami](https://fastwork.id/user/aistudiocheat/ai-automation-23623063?utm_source=app_sharing)**
 
 ---
 
-## 📝 Artikel Edukasi Terbaru:
+## 📝 Artikel Edukasi Terbaru (Otomatis):
 
-* [Cara Mengatasi Error Gradle Saat Integrasi Google AI Studio ke GitHub](./solusi-gradle-error)
-* [Mengapa Aplikasi Hasil Web-Wrapper / WebView Rawan Ditolak Google Play Console](./bahaya-webview-ai)
+<ul>
+  {% for item in site.pages %}
+    <!-- Filter: Hanya ambil file markdown artikel dan abaikan file utama beranda -->
+    {% if item.url contains '.html' == false and item.name != 'index.md' and item.title %}
+      <li>
+        <a href="{{ item.url | relative_url }}"><b>{{ item.title }}</b></a>
+        {% if item.description %}
+          <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8;">{{ item.description }}</p>
+        {% endif %}
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>
