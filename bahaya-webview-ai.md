@@ -3,7 +3,7 @@ layout: artikel
 title: Bahaya Aplikasi Android WebView Hasil AI Instan Rawan Ditolak Google Play
 ---
 
-# Bahaya Aplikasi Android WebView Hasil AI Instan Rawan Ditolak Google Play
+## Bahaya Aplikasi Android WebView Hasil AI Instan Rawan Ditolak Google Play
 
 Saat ini, iklan platform AI komersial seperti Manus AI, Dola, atau Lovable sangat gencar mempromosikan kemudahan membuat aplikasi Android hanya dengan satu baris perintah teks. Bagi pelaku bisnis atau orang awam, penawaran ini terdengar sangat menggiurkan. Namun, ada satu rahasia besar yang sengaja disembunyikan: **Aplikasi hasil generate AI instan tersebut hampir 90% akan langsung diblokir dan ditolak saat diunggah ke Google Play Console.**
 
