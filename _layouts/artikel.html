@@ -1,0 +1,25 @@
+---
+layout: default
+---
+
+<!-- Menampilkan Isi Artikel Utama Klien -->
+{{ content }}
+
+<hr style="margin-top: 40px; border: 0; border-top: 1px solid #eee;">
+
+<!-- MESIN OTOMATIS REKOMENDASI ARTIKEL LAIN -->
+<h3>📖 Artikel Rekomendasi Lainnya:</h3>
+<ul>
+  {% assign count = 0 %}
+  {% for item in site.pages %}
+    <!-- Filter: Hanya tampilkan file markdown artikel dan jangan tampilkan artikel yang sedang dibaca -->
+    {% if item.url != page.url and item.url contains '.html' == false and item.name != 'index.md' %}
+      {% if count < 3 %}
+        <li><a href="{{ item.url | relative_url }}"><b>{{ item.title }}</b></a></li>
+        {% assign count = count | plus: 1 %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+</ul>
+
+<p>🏠 <a href="{{ '/' | relative_url }}">Kembali ke Halaman Beranda Utama</a></p>
