@@ -1,0 +1,22 @@
+---
+layout: null
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://sitemaps.org">
+  <!-- URL Beranda Utama -->
+  <url>
+    <loc>{{ site.url | append: site.baseurl }}/</loc>
+    <priority>1.0</priority>
+    <changefreq>daily</changefreq>
+  </url>
+  <!-- URL Artikel Otomatis -->
+  {% for page in site.pages %}
+    {% if page.url contains '.html' == false and page.name != 'index.md' and page.title %}
+    <url>
+      <loc>{{ site.url | append: site.baseurl }}{{ page.url }}</loc>
+      <priority>0.8</priority>
+      <changefreq>weekly</changefreq>
+    </url>
+    {% endif %}
+  {% endfor %}
+</urlset>
