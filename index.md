@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Beranda
+title: Ai Studio Cheat
 ---
 
 # Selamat Datang di Studio Cheat! 🚀
