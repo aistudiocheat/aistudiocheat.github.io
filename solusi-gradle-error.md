@@ -3,7 +3,7 @@ layout: artikel
 title: Solusi Error Gradle Google AI Studio ke GitHub Actions
 ---
 
-# Solusi Error Gradle Saat Integrasi Google AI Studio ke GitHub Actions
+## Solusi Error Gradle Saat Integrasi Google AI Studio ke GitHub Actions
 
 Banyak orang memanfaatkan Google AI Studio untuk membuat aplikasi Android berbasis Kotlin secara instan. Fitur "Connect to GitHub" bawaan Google memang sangat memudahkan, namun 90% pengguna menabrak dinding keras berupa *Error Gradle Wrapper Corrupt* atau *Unsigned APK* saat pertama kali melakukan build otomatis.
 
