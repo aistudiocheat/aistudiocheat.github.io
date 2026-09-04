@@ -2,24 +2,29 @@
 layout: default
 ---
 
-<!-- Menampilkan Isi Artikel Utama Klien -->
+<!-- Menampilkan Isi Artikel Utama -->
 {{ content }}
 
-<hr style="margin-top: 40px; border: 0; border-top: 1px solid #eee;">
+<hr style="margin-top: 40px; border: 0; border-top: 1px solid #1e293b;">
 
 <!-- MESIN OTOMATIS REKOMENDASI ARTIKEL LAIN -->
 <h3>📖 Artikel Rekomendasi Lainnya:</h3>
-<ul>
+<ul style="list-style-type: none !important; padding-left: 0 !important;">
   {% assign count = 0 %}
-  {% for item in site.pages %}
-    <!-- Filter: Hanya tampilkan file markdown artikel dan jangan tampilkan artikel yang sedang dibaca -->
-    {% if item.url != page.url and item.url contains '.html' == false and item.name != 'index.md' %}
+  {% for item in site.html_pages %}
+    <!-- Filter Pintar: Jangan tampilkan beranda utama, jangan tampilkan artikel yang sedang dibaca saat ini -->
+    {% if item.title and item.url != '/' and item.url != '/index' and item.url != page.url %}
       {% if count < 3 %}
-        <li><a href="{{ item.url | relative_url }}"><b>{{ item.title }}</b></a></li>
+        <li style="background-color: #1e293b !important; border: 1px solid #334155 !important; border-radius: 8px !important; padding: 1rem !important; margin-bottom: 0.75rem !important;">
+          <a href="{{ item.url | relative_url }}"><b>{{ item.title }}</b></a>
+          {% if item.description %}
+            <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8;">{{ item.description }}</p>
+          {% endif %}
+        </li>
         {% assign count = count | plus: 1 %}
       {% endif %}
     {% endif %}
   {% endfor %}
 </ul>
 
-<p>🏠 <a href="{{ '/' | relative_url }}">Kembali ke Halaman Beranda Utama</a></p>
+<p style="margin-top: 20px;">🏠 <a href="{{ '/' | relative_url }}">Kembali ke Halaman Beranda Utama</a></p>
