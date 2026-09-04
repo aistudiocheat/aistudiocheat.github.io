@@ -19,9 +19,9 @@ Jika Anda tidak ingin pusing menghadapi ratusan *error* Gradle, kebocoran API Ke
 ## 📝 Artikel Edukasi Terbaru:
 
 <ul>
-  {% for item in site.pages %}
-    <!-- Filter Baru: Mengandalkan keberadaan judul (title) dan mengabaikan file utama seperti index, sitemap, dan folder sistem layout -->
-    {% if item.title and item.name != 'index.md' and item.url contains '_layouts' == false and item.url contains 'sitemap' == false %}
+  {% for item in site.html_pages %}
+    <!-- Filter Mutakhir: Menangkap semua halaman html hasil generate dan membuang file beranda utama -->
+    {% if item.title and item.url != '/' and item.url != '/index' %}
       <li>
         <a href="{{ item.url | relative_url }}"><b>{{ item.title }}</b></a>
         {% if item.description %}
