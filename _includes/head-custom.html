@@ -1,4 +1,19 @@
+<!-- METADATA SUPER SEO ENGINE SECARA NATIVE -->
+<title>{% if page.title %}{{ page.title }} | Ai Studio Cheat{% else %}{{ site.title }}{% endif %}</title>
+<meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Ai Studio Cheat">
+
+<!-- Open Graph Meta Tags untuk Trafik Pinterest / Media Sosial -->
+<meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
+<meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ page.url | absolute_url }}">
+
+<!-- Kode Verifikasi Google Search Console Anda -->
 <meta name="google-site-verification" content="0c3KR6S8qLA7pT-Asj_qV6NurpFhg7RbPQrWTReU4Ig" />
+
+<!-- KODE DESIGN PRESET DARK MODE PREMIUM CAYMAN -->
 <style>
   body { 
     background-color: #0b0f19 !important; 
@@ -11,28 +26,15 @@
     padding: 3.5rem 2rem !important;
     border-bottom: 1px solid #1e293b !important;
   }
-  .project-name { 
-    color: #38bdf8 !important; 
-    font-weight: 800 !important;
-  }
-  .project-tagline { 
-    color: #94a3b8 !important; 
-    opacity: 1 !important;
-  }
-  .main-content {
-    max-width: 46rem !important;
-    color: #cbd5e1 !important;
-  }
-  h1, h2, h3, h4 { 
-    color: #f8fafc !important; 
-    font-weight: 700 !important; 
-    border-bottom: none !important;
-  }
+  .project-name { color: #38bdf8 !important; font-weight: 800 !important; }
+  .project-tagline { color: #94a3b8 !important; opacity: 1 !important; }
+  .main-content { max-width: 46rem !important; color: #cbd5e1 !important; }
+  h1, h2, h3, h4 { color: #f8fafc !important; font-weight: 700 !important; border-bottom: none !important; }
   h1, h2 { color: #38bdf8 !important; }
   a { color: #38bdf8 !important; text-decoration: none !important; }
   a:hover { color: #7dd3fc !important; text-decoration: underline !important; }
   
-  /* Tombol Fastwork Premium */
+  /* Tombol Fastwork Premium Dynamic Interaktif */
   a[href*="fastwork.id"] {
     display: inline-block !important;
     background: linear-gradient(135deg, #0284c7, #0369a1) !important;
@@ -45,24 +47,11 @@
     transition: transform 0.2s !important;
     margin: 1rem 0 !important;
   }
-  a[href*="fastwork.id"]:hover {
-    transform: translateY(-2px) !important;
-    color: #ffffff !important;
-    text-decoration: none !important;
-  }
+  a[href*="fastwork.id"]:hover { transform: translateY(-2px) !important; color: #ffffff !important; }
   
   /* Kotak Koding / Code Block */
-  code {
-    background-color: #1e293b !important;
-    color: #f1f5f9 !important;
-    padding: 0.2rem 0.4rem !important;
-    border-radius: 4px !important;
-  }
-  pre {
-    background-color: #0f172a !important;
-    border: 1px solid #1e293b !important;
-    border-radius: 8px !important;
-  }
+  code { background-color: #1e293b !important; color: #f1f5f9 !important; padding: 0.2rem 0.4rem !important; border-radius: 4px !important; }
+  pre { background-color: #0f172a !important; border: 1px solid #1e293b !important; border-radius: 8px !important; }
   pre code { background-color: transparent !important; }
   
   /* Daftar Artikel Berbentuk Card */
@@ -75,8 +64,5 @@
     margin-bottom: 0.75rem !important;
     transition: transform 0.2s !important;
   }
-  .main-content ul li:hover {
-    transform: translateX(4px) !important;
-    border-color: #38bdf8 !important;
-  }
+  .main-content ul li:hover { transform: translateX(4px) !important; border-color: #38bdf8 !important; }
 </style>
