@@ -20,8 +20,8 @@ Jika Anda tidak ingin pusing menghadapi ratusan *error* Gradle, kebocoran API Ke
 
 <ul>
   {% for item in site.pages %}
-    <!-- Filter: Hanya ambil file markdown artikel dan abaikan file utama beranda -->
-    {% if item.url contains '.html' == false and item.name != 'index.md' and item.title %}
+    <!-- Filter Baru: Mengandalkan keberadaan judul (title) dan mengabaikan file utama seperti index, sitemap, dan folder sistem layout -->
+    {% if item.title and item.name != 'index.md' and item.url contains '_layouts' == false and item.url contains 'sitemap' == false %}
       <li>
         <a href="{{ item.url | relative_url }}"><b>{{ item.title }}</b></a>
         {% if item.description %}
