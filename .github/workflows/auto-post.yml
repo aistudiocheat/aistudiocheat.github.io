@@ -1,0 +1,43 @@
+name: Agen AI Penulis Artikel (2x Sehari)
+
+on:
+  schedule:
+    # Berjalan otomatis 2x sehari: Jam 07:00 WIB (00:00 UTC) dan Jam 19:00 WIB (12:00 UTC)
+    - cron: '0 0,12 * * *' 
+  workflow_dispatch: # Tombol rahasia agar Anda bisa tes jalankan manual kapan saja
+
+jobs:
+  tulis-dan-publish:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 1. Ambil Kode Repositori
+      uses: actions/checkout@v4
+
+    - name: 2. Setup Python di Server
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 3. Install SDK Resmi Google AI
+      run: |
+        pip install google-genai
+
+    - name: 4. Jalankan Agen AI (Bikin Artikel Markdown)
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: python generate_post.py
+
+    - name: 5. Push Artikel Baru ke Folder Posts
+      env:
+        # Menggunakan token akses yang sudah Anda buat di Secrets tadi
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        git config --global user.name "Agen AI Fastwork Lead"
+        git config --global user.email "ai-agent-automation@github.com"
+        
+        # Atur agar Git menggunakan token rahasia Anda saat push kode
+        git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@://github.com{{ github.repository }}.git
+        
+        git add posts/*.md
+        # Periksa apakah ada file baru sebelum melakukan commit agar tidak eror
+        git diff-index --quiet HEAD || (git commit -m "Automated: Artikel konversi baru dari Gemini AI" && git push origin main)
