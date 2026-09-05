@@ -1,3 +1,11 @@
+---
+title: "Cara Mengunci API Key di GitHub Actions Agar Saldo Google Tidak Dikuras Hacker"
+author: "AI Studio Cheat"
+tags: ["Gemini API","Google AI Studio","Tutorial"] 
+summary: "satu kecerobohan fatal yang sering dilakukan oleh developer pemula maupun agensi: **Menuliskan `GEMINI_API_KEY` secara terang-terangan (hardcoded) di dalam file kode, lalu mengunggahnya ke repositori GitHub.**
+"
+---
+
 # Cara Mengunci API Key di GitHub Actions Agar Saldo Google Tidak Dikuras Hacker
 
 Membuat aplikasi berbasis kecerdasan buatan (AI) lewat **Google AI Studio** memang sangat menyenangkan. Hanya dengan mengekspor kode Kotlin bawaannya, aplikasi Anda sudah bisa langsung menggunakan kecerdasan model Gemini. 
@@ -48,4 +56,4 @@ Menyusun sistem enkripsi berlapis, mengamankan file *Keystore* digital Base64, h
 
 Jika Anda ingin mengamankan dapur finansial aplikasi AI Anda sekarang juga tanpa perlu pusing melewati ratusan kali kegagalan ujicoba sistem, kami di **Studio Cheat** siap memasangkan infrastruktur keamanannya untuk Anda.
 
-Kami menyusun sistem *Ultimate CloudBuilder Pro* yang mengunci seluruh kredensial berharga Anda di dalam GitHub Secrets, memastikan aplikasi Anda 100% aman, ringan, anti-hacker, dan siap menghasilkan keuntungan AdMob secara mandiri selamanya cukup dengan sekali klik!
+Kami menyusun sistem *Ultimate CloudBuilder Pro* yang mengunci seluruh kredensial berharga Anda di dalam GitHub Secrets, memastikan aplikasi Anda 100% aman, ringan, anti-hacker, dan siap menghasilkan keuntungan AdMob secara mandiri selamanya cukup dengan sekali klik, kunjungi dan chat kami di fastwork untuk informasi lebih lanjut.
