@@ -347,69 +347,6 @@
 
   </main>
 
-  <!-- How-To Publish Modal -->
-  <div id="how-to-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-    <div class="glass-panel w-full max-w-2xl rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
-      <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-feather text-cyber-400"></i> Cara Menulis Artikel Baru di GitHub
-        </h3>
-        <button onclick="closeModal('how-to-modal')" class="text-slate-400 hover:text-white text-lg">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div class="p-6 space-y-4 text-xs text-slate-300 leading-relaxed font-mono overflow-y-auto max-h-[75vh]">
-        <p class="text-slate-200">
-          Setiap kali Anda menulis artikel baru di repositori GitHub, artikel tersebut akan otomatis terbaca oleh website blog ini!
-        </p>
-
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
-          <span class="text-cyber-400 font-bold block">Langkah-langkah:</span>
-          <ol class="list-decimal list-inside space-y-2 text-slate-300">
-            <li>Buka repositori GitHub Anda di <strong class="text-amber-300">aistudiocheat/aistudiocheat.github.io</strong>.</li>
-            <li>Masuk ke dalam folder <strong class="text-cyber-400">posts/</strong> (buat folder jika belum ada).</li>
-            <li>Tambahkan file Markdown baru, contoh: <strong class="text-emerald-400">posts/panduan-gemini-3.md</strong>.</li>
-            <li>Isi file tersebut dengan format Frontmatter standar seperti contoh di bawah ini:</li>
-          </ol>
-        </div>
-
-        <!-- Sample Markdown Template -->
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 relative">
-          <button onclick="copyModalTemplate()" class="absolute top-3 right-3 text-[11px] text-cyber-400 hover:underline">
-            <i class="fa-regular fa-copy"></i> Copy Template
-          </button>
-          <pre id="md-template" class="text-[11px] text-amber-200 whitespace-pre-wrap">---
-title: "Panduan Lengkap Optimalisasi Gemini API"
-date: "2026-09-05"
-author: "AI Studio Cheat"
-tags: ["Gemini API", "Tutorial", "Python"]
-summary: "Ringkasan singkat artikel yang akan muncul di kartu homepage."
----
-
-# Judul Utama Artikel
-
-Tulis naskah artikel Anda dalam bentuk Markdown di sini...
-
-```python
-# Kode contoh
-import google.generativeai as genai
-print("Halo Gemini!")
-```</pre>
-        </div>
-
-        <p class="text-slate-400 text-[11px]">
-          *Catatan: Jika repositori Anda belum siap, blog ini secara otomatis menampilkan contoh artikel bawaan (mock fallback) sehingga tampilan selalu siap dibaca.*
-        </p>
-
-        <div class="pt-2 flex justify-end">
-          <button onclick="closeModal('how-to-modal')" class="px-4 py-2 rounded-lg bg-cyber-500 text-gemini-bg font-bold text-xs hover:bg-cyber-400">
-            Paham, Mengerti!
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Footer -->
   <footer class="border-t border-gemini-border/60 py-8 bg-slate-950/90 text-xs text-slate-400 mt-16">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -426,7 +363,7 @@ print("Halo Gemini!")
 
   <!-- JAVASCRIPT APP LOGIC -->
   <script>
-    // MOCK ARTICLES DATASET (Fallback if repo posts folder is not yet created)
+    // MOCK ARTICLES DATASET (Fallback if repo posts folder is empty or not found)
     const MOCK_ARTICLES = [
       {
         id: "panduan-gemini-3-5-flash",
@@ -529,93 +466,6 @@ Istilah *Vibe Coding* kini marak digunakan di mana developer berkolaborasi denga
 ## Kesimpulan
 Pendekatan ini sangat ideal untuk prototipe, halaman dokumentasi, dashboard internal, serta repositori GitHub Pages personal.
         `
-      },
-      {
-        id: "python-gemini-sdk-cheat-sheet",
-        slug: "python-gemini-sdk-cheat-sheet",
-        title: "Cheat Sheet Python SDK Gemini: Dari Basic Text Hingga Multimodal Vision",
-        date: "2026-08-15",
-        author: "Python AI Dev",
-        tags: ["Python", "Gemini API"],
-        summary: "Rangkuman potongan kode Python paling sering digunakan untuk berinteraksi dengan API Gemini termasuk penanganan gambar dan dokumen PDF.",
-        content: `
-# Cheat Sheet Python SDK Gemini
-
-Kumpulan fungsi siap pakai untuk memproses teks, gambar, dan analisis berkas menggunakan Python SDK Google Generative AI.
-
-## 1. Analisis Gambar (Vision)
-
-\`\`\`python
-import PIL.Image
-
-img = PIL.Image.open("diagram.png")
-response = model.generate_content(["Jelaskan isi diagram arsitektur berikut:", img])
-print(response.text)
-\`\`\`
-
-## 2. Streaming Response
-
-Untuk memberikan efek ketikan (typing effect) langsung ke pengguna:
-
-\`\`\`python
-response = model.generate_content("Tuliskan esai singkat...", stream=True)
-for chunk in response:
-    print(chunk.text, end="", flush=True)
-\`\`\`
-
----
-
-Simpan catatan ini untuk proyek Python AI Anda berikutnya!
-        `
-      },
-      {
-        id: "mengenal-system-instructions-gemini",
-        slug: "mengenal-system-instructions-gemini",
-        title: "Panduan System Instructions: Mengendalikan Persona & Output AI",
-        date: "2026-08-02",
-        author: "Prompt Engineer",
-        tags: ["Prompt Engineering"],
-        summary: "Bagaimana cara menyusun System Instruction agar Gemini tidak bertele-tele dan selalu mematuhi instruksi dengan akurasi 99%.",
-        content: `
-# Menguasai System Instructions di AI Studio
-
-System Instruction (SI) adalah pondasi dasar sebelum user memberikan *prompt* input. SI menetapkan peran, batasan, dan format jawaban AI.
-
-### Contoh System Instruction yang Efektif:
-
-\`\`\`text
-Anda adalah Senior Code Auditor.
-Tugas Anda: Tinjau kode yang dikirim pengguna.
-Aturan:
-1. Cari bug keamanan dan beri nilai keparahan (High/Medium/Low).
-2. Jangan beri teks pembuka sopan seperti "Tentu saya bisa bantu".
-3. Berikan solusi perbaikan langsung dalam bentuk code block.
-\`\`\`
-
-Dengan instruksi ketat seperti di atas, hasil keluaran AI akan konsisten dan tidak keluar dari konteks.
-        `
-      },
-      {
-        id: "hosting-gratis-github-pages-ai-site",
-        slug: "hosting-gratis-github-pages-ai-site",
-        title: "Deploy Blog & Tools AI Gratis di GitHub Pages dalam 3 Menit",
-        date: "2026-07-20",
-        author: "DevOps Explorer",
-        tags: ["Tutorial"],
-        summary: "Langkah-langkah praktis mengaktifkan GitHub Pages dari repositori Anda untuk mempublikasikan blog developer ini.",
-        content: `
-# Deploy Blog di GitHub Pages
-
-GitHub Pages menyediakan hosting web gratis tanpa batas bandwidth untuk repositori publik.
-
-## Langkah-langkah Quick Deploy:
-
-1. Buat repositori bernama \`username.github.io\` di GitHub.
-2. Upload file \`index.html\` ini ke root repositori.
-3. Buka **Settings -> Pages** di halaman repositori.
-4. Pada opsi **Source**, pilih branch \`main\` dan folder \`/ (root)\`.
-5. Klik **Save**. Halaman web Anda siap diakses dalam 1-2 menit!
-        `
       }
     ];
 
@@ -634,7 +484,7 @@ GitHub Pages menyediakan hosting web gratis tanpa batas bandwidth untuk reposito
         langPrefix: 'hljs language-'
       });
 
-      // Load Articles (Attempt Fetch from Repo / Fallback to MOCK)
+      // Load Articles Dynamically
       loadArticles();
 
       // Handle Browser Hash Navigation (SPA)
@@ -644,18 +494,107 @@ GitHub Pages menyediakan hosting web gratis tanpa batas bandwidth untuk reposito
       window.addEventListener('scroll', updateReadingProgress);
     });
 
-    // FETCH ARTICLES FROM REPOSITORY OR FALLBACK
+    // FRONTMATTER PARSER FOR MARKDOWN FILES
+    function parseFrontmatter(text, defaultSlug) {
+      const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
+      const match = text.match(frontmatterRegex);
+
+      if (!match) {
+        // Fallback parsing if no YAML frontmatter is present
+        const titleMatch = text.match(/^#\s+(.+)$/m);
+        const title = titleMatch ? titleMatch[1] : defaultSlug.replace(/-/g, ' ');
+        return {
+          id: defaultSlug,
+          slug: defaultSlug,
+          title: title,
+          date: new Date().toISOString().split('T')[0],
+          author: "AI Studio Team",
+          tags: ["Artikel"],
+          summary: text.replace(/^#.*$/gm, '').trim().slice(0, 150) + '...',
+          content: text
+        };
+      }
+
+      const yamlBlock = match[1];
+      const content = match[2];
+      const metadata = {};
+
+      yamlBlock.split('\n').forEach(line => {
+        const colonIndex = line.indexOf(':');
+        if (colonIndex !== -1) {
+          const key = line.slice(0, colonIndex).trim();
+          let value = line.slice(colonIndex + 1).trim();
+
+          // Remove surrounding quotes
+          if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.slice(1, -1);
+          }
+
+          // Parse Array tags
+          if (key === 'tags' && value.startsWith('[') && value.endsWith(']')) {
+            try {
+              value = JSON.parse(value.replace(/'/g, '"'));
+            } catch (e) {
+              value = value.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
+            }
+          }
+          metadata[key] = value;
+        }
+      });
+
+      return {
+        id: defaultSlug,
+        slug: defaultSlug,
+        title: metadata.title || defaultSlug,
+        date: metadata.date || new Date().toISOString().split('T')[0],
+        author: metadata.author || "AI Studio Team",
+        tags: Array.isArray(metadata.tags) ? metadata.tags : (metadata.tags ? [metadata.tags] : ["Tutorial"]),
+        summary: metadata.summary || content.replace(/^#.*$/gm, '').trim().slice(0, 150) + '...',
+        content: content
+      };
+    }
+
+    // AUTO-SCAN GITHUB API FOR POSTS FOLDER
     async function loadArticles() {
       try {
-        const response = await fetch('posts/manifest.json');
-        if (response.ok) {
-          const repoArticles = await response.json();
-          allArticles = repoArticles;
+        let owner = 'aistudiocheat';
+        let repo = 'aistudiocheat.github.io';
+        
+        // Auto-detect current GitHub Pages user & repo name from location
+        if (window.location.hostname.endsWith('.github.io')) {
+          owner = window.location.hostname.split('.')[0];
+          const paths = window.location.pathname.split('/').filter(Boolean);
+          repo = paths.length > 0 ? paths[0] : `${owner}.github.io`;
+        }
+
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/posts`;
+        const res = await fetch(apiUrl);
+        
+        if (res.ok) {
+          const files = await res.json();
+          const mdFiles = files.filter(f => f.name.endsWith('.md'));
+          
+          if (mdFiles.length > 0) {
+            const fetchedArticles = await Promise.all(
+              mdFiles.map(async (file) => {
+                const slug = file.name.replace(/\.md$/, '');
+                const rawRes = await fetch(file.download_url || `posts/${file.name}`);
+                const text = await rawRes.text();
+                return parseFrontmatter(text, slug);
+              })
+            );
+            
+            // Sort articles newest first
+            allArticles = fetchedArticles.sort((a, b) => new Date(b.date) - new Date(a.date));
+          } else {
+            allArticles = MOCK_ARTICLES;
+          }
         } else {
+          // If GitHub API rate limits or 404, fallback to local fetch or mock
           allArticles = MOCK_ARTICLES;
         }
       } catch (err) {
-        console.log("Menggunakan fallback data artikel bawaan.");
+        console.log("Fallback data artikel aktif.");
         allArticles = MOCK_ARTICLES;
       }
 
@@ -825,11 +764,9 @@ GitHub Pages menyediakan hosting web gratis tanpa batas bandwidth untuk reposito
       const fullUrl = window.location.href;
       document.title = `${art.title} — AI Studio DevLog`;
       
-      // Update Meta Description
       let metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute('content', art.summary);
 
-      // Update OG Meta Tags
       let ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) ogTitle.setAttribute('content', art.title);
 
@@ -839,7 +776,6 @@ GitHub Pages menyediakan hosting web gratis tanpa batas bandwidth untuk reposito
       let ogUrl = document.querySelector('meta[property="og:url"]');
       if (ogUrl) ogUrl.setAttribute('content', fullUrl);
 
-      // Dynamic Inject / Update JSON-LD Article Schema
       let oldSchema = document.getElementById('schema-article');
       if (oldSchema) oldSchema.remove();
 
@@ -884,7 +820,7 @@ GitHub Pages menyediakan hosting web gratis tanpa batas bandwidth untuk reposito
       document.getElementById('article-author').innerText = art.author || 'AI Studio Team';
       
       const wordCount = art.content.split(/\s+/).length;
-      const readTime = Math.ceil(wordCount / 180);
+      const readTime = Math.max(1, Math.ceil(wordCount / 180));
       document.getElementById('article-reading-time').innerHTML = `<i class="fa-regular fa-clock mr-1"></i> ${readTime} mnt baca`;
 
       document.getElementById('article-tags-header').innerHTML = art.tags.map(t => 
@@ -1007,15 +943,6 @@ GitHub Pages menyediakan hosting web gratis tanpa batas bandwidth untuk reposito
       navigator.clipboard.writeText(url);
       showToast("Tautan artikel berhasil disalin!");
     }
-
-    function copyModalTemplate() {
-      const text = document.getElementById('md-template').innerText;
-      navigator.clipboard.writeText(text);
-      showToast("Template Markdown disalin!");
-    }
-
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
   </script>
 </body>
 </html>
