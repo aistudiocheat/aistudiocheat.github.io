@@ -9,7 +9,7 @@ client = genai.Client()
 
 # 2. Bank Ide Topik - Tempat Agen AI memilih masalah yang sering dihadapi developer pemula
 DAFTAR_TOPIK = [
-    "Cara Integrasi API Gemini 2.5 Flash ke Android Studio Kotlin untuk Pemula",
+    "Cara Integrasi API Gemini 3.5 Flash ke Android Studio Kotlin untuk Pemula",
     "Kenapa Aplikasi Android Buatan Google AI Studio Tidak Bisa Langsung di-Upload ke Play Store?",
     "Panduan Membuat Aplikasi Chatbot Android Menggunakan Template Google AI Studio",
     "Cara Mengatasi Error API Key Bocor saat Export Project dari Google AI Studio ke Android Studio",
@@ -47,9 +47,9 @@ tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 Catatan: Jangan tuliskan link CTA Fastwork secara manual di teks ini, karena sistem HTML Anda sudah menampilkannya otomatis di bawah file markdown.
 """
 
-# 4. Memanggil model Gemini 2.6 Flash yang cerdas dan efisien
+# 4. Memanggil model Gemini 3.5 Flash yang cerdas dan efisien
 response = client.models.generate_content(
-    model='gemini-2.6-flash',
+    model='gemini-3.5-flash',
     contents=prompt,
 )
 
