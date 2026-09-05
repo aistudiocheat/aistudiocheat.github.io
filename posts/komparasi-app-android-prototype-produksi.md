@@ -1,3 +1,10 @@
+---
+title: "Jangan Rilis Aplikasi Google AI Studio Sebelum Baca Ini! (Bahaya Over-Budget)"
+author: "AI Studio Cheat"
+tags: ["Gemini API","Google AI Studio","Tutorial","Google Play Console"] 
+summary: "Membiarkan aplikasi Anda tetap berada di tahap prototype sama saja dengan membuang potensi bisnis yang sudah Anda bangun. Migrasi ke versi produksi bukan lagi pilihan, melainkan kewajiban jika Anda serius ingin membangun produk digital yang berkelanjutan."
+---
+
 # Jangan Rilis Aplikasi Google AI Studio Sebelum Baca Ini! (Bahaya Over-Budget)
 
 Demam membuat aplikasi Android menggunakan **Google AI Studio** saat ini sedang melanda para kreator, agensi, dan pelaku bisnis digital. Kemudahan mengekspor kode mentah berbasis Kotlin membuat siapa saja merasa bisa menjadi developer dalam semalam. 
