@@ -6,6 +6,10 @@ on:
     - cron: '0 0,12 * * *' 
   workflow_dispatch: # Tombol rahasia agar Anda bisa tes jalankan manual kapan saja
 
+# Memberikan izin penuh kepada robot GitHub untuk menulis file ke dalam repositori
+permissions:
+  contents: write
+
 jobs:
   tulis-dan-publish:
     runs-on: ubuntu-latest
@@ -28,19 +32,17 @@ jobs:
       run: python generate_post.py
 
     - name: 5. Push Artikel Baru ke Folder Posts
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         git config --global user.name "Agen AI Fastwork Lead"
         git config --global user.email "ai-agent-automation@github.com"
         
-        # Tambahkan perubahan ke staging
+        # Tambahkan semua file markdown baru di folder posts
         git add posts/*.md
         
-        # Lakukan commit jika ada file baru, lalu langsung push dengan token bawaan GitHub Actions
+        # Lakukan commit jika ada file baru, lalu lakukan push aman ke branch aktif saat ini
         if ! git diff-index --quiet HEAD; then
           git commit -m "Automated: Artikel konversi baru dari Gemini AI"
-          git push https://x-access-token:${{ secrets.GH_TOKEN }}@://github.com{{ github.repository }}.git HEAD
+          git push origin HEAD:${{ github.ref_name }}
         else
-          echo "Tidak ada artikel baru yang dibuat."
+          echo "Tidak ada artikel baru yang dideteksi."
         fi
