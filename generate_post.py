@@ -60,7 +60,6 @@ slug = TOPIK_HARI_INI.lower()
 slug = re.sub(r'[^a-z0-9\s-]', '', slug) # Hapus karakter aneh
 slug = re.sub(r'[\s-]+', '-', slug).strip('-') # Ubah spasi jadi tanda minus
 
-tanggal = datetime.date.today().isoformat()
 nama_file = f"posts/{tanggal}-{slug}.md"
 
 # 6. Memastikan folder posts/ ada dan menyimpan file markdown artikel
