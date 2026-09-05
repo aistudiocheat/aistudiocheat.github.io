@@ -27,7 +27,7 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: python generate_post.py
 
-        - name: 5. Push Artikel Baru ke Folder Posts
+    - name: 5. Push Artikel Baru ke Folder Posts
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
