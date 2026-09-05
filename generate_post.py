@@ -18,6 +18,12 @@ DAFTAR_TOPIK = [
     "Cara Cepat Mengubah File Zip dari Google AI Studio Menjadi Project Android Studio yang Siap Dicoding",
     "Cara Mengatur Layout UI Android agar Rapi Saat Menggunakan Elemen AI dari Google AI Studio",
     "Menghubungkan Database Room dengan Hasil Output Text dari Gemini API di Android Studio"
+    "Solusi Gradle Error Saat Build AAB,APK"
+    "Solusi Deploy Aplikasi Hasil Koding Google AI Studio"
+    "Cara ubah prototype Android hasil generate Google AI Studio ke versi produksi resmi"
+    "Cara hasilkan uang dari Aplikasi Android buatan AI"
+    "Cara integrasi database Aplikasi Android Google AI Studio ke firebase"
+    "Cara membuat integrasi SDK Firebase ke Aplikasi Android Google AI Studio"
 ]
 
 # Agen memilih 1 topik secara acak setiap harinya
