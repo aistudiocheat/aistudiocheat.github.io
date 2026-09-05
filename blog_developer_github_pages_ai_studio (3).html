@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Studio DevLog — Blog & Catatan Developer Gemini AI, Prompt Engineering & Python</title>
+  <meta name="description" content="Pusat tutorial Gemini API, prompt engineering, AI automation, dan vibe coding. Tempat belajar pemrograman AI modern dan integrasi Google AI Studio gratis." />
+  <meta name="keywords" content="Gemini API, Google AI Studio, Prompt Engineering, Python AI, AI Automation, Vibe Coding, Tutorial Gemini 3.5, Developer Blog" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="author" content="AI Studio DevLog" />
+  <link rel="canonical" href="https://aistudiocheat.github.io/" />
+
+  <!-- Open Graph / Facebook / WhatsApp / LinkedIn SEO Meta Tags -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://aistudiocheat.github.io/" />
+  <meta property="og:title" content="AI Studio DevLog — Blog & Catatan Developer Gemini AI" />
+  <meta property="og:description" content="Tutorial teknis Gemini API, prompt engineering, AI automation, dan pemrograman AI modern." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop" />
+  <meta property="og:site_name" content="AI Studio DevLog" />
+  <meta property="og:locale" content="id_ID" />
+
+  <!-- Twitter Cards SEO Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI Studio DevLog — Blog Developer Gemini AI" />
+  <meta name="twitter:description" content="Tutorial teknis Gemini API, prompt engineering, dan pemograman AI modern." />
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop" />
+
+  <!-- JSON-LD Structured Data Schema.org (Google Rich Results SEO) -->
+  <script type="application/ld+json" id="schema-website">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "AI Studio DevLog",
+    "url": "https://aistudiocheat.github.io/",
+    "description": "Blog teknis & jurnal pengembangan AI Studio, tutorial Gemini API, prompt engineering, dan pemograman modern.",
+    "inLanguage": "id-ID",
+    "publisher": {
+      "@type": "Organization",
+      "name": "AI Studio Team",
+      "url": "https://aistudiocheat.github.io/"
+    }
+  }
+  </script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Marked.js (Markdown Parser) & Highlight.js (Code Syntax Highlighter) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            serif: ['Newsreader', 'serif'],
+          },
+          colors: {
+            cyber: {
+              50: '#f0fdfa',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+            },
+            gemini: {
+              bg: '#090d16',
+              card: '#111827',
+              border: '#1f293d',
+              accent: '#3b82f6',
+              purple: '#a855f7'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2dd4bf; }
+
+    /* Glass Panels */
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      border-color: rgba(45, 212, 191, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Markdown Article Render Typography */
+    .article-content {
+      font-size: 1.0625rem;
+      line-height: 1.8;
+      color: #cbd5e1;
+    }
+    .article-content h1 { font-size: 2.25rem; font-weight: 800; color: #f8fafc; margin-top: 2rem; margin-bottom: 1rem; line-height: 1.25; }
+    .article-content h2 { font-size: 1.65rem; font-weight: 700; color: #f1f5f9; margin-top: 2rem; margin-bottom: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem; }
+    .article-content h3 { font-size: 1.3rem; font-weight: 600; color: #e2e8f0; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    .article-content p { margin-bottom: 1.25rem; }
+    .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+    .article-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+    .article-content li { margin-bottom: 0.4rem; }
+    .article-content blockquote { border-left: 4px solid #2dd4bf; padding-left: 1.25rem; margin: 1.5rem 0; color: #94a3b8; font-style: italic; background: rgba(45, 212, 191, 0.04); padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 0.5rem 0.5rem 0; }
+    .article-content code:not(pre code) { background: #1e293b; color: #38bdf8; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875em; }
+    .article-content pre { margin: 1.5rem 0; border-radius: 0.75rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background-color: #0f172a !important; position: relative; }
+    .article-content img { border-radius: 0.75rem; max-width: 100%; height: auto; margin: 1.5rem 0; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .article-content a { color: #2dd4bf; text-decoration: underline; text-underline-offset: 4px; }
+    .article-content a:hover { color: #5eead4; }
+
+    /* Code Block Copy Button Container */
+    .code-block-wrapper { position: relative; }
+    .copy-code-btn {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
+      padding: 0.3rem 0.6rem;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 0.375rem;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+    .copy-code-btn:hover { background: #2dd4bf; color: #090d16; font-weight: 600; }
+  </style>
+</head>
+<body class="bg-gemini-bg text-slate-200 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-cyber-500 selection:text-white relative overflow-x-hidden">
+
+  <!-- Background Orbs -->
+  <div class="fixed top-0 left-1/3 w-[500px] h-[500px] bg-cyber-500/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-10 right-10 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[150px] pointer-events-none -z-10"></div>
+
+  <!-- Reading Progress Bar (Shown in Article Page) -->
+  <div id="reading-progress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-cyber-400 via-blue-500 to-purple-500 w-0 z-50 transition-all duration-150"></div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-in-out glass-panel px-5 py-3 rounded-xl border-l-4 border-cyber-400 flex items-center space-x-3 shadow-2xl">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-cyber-400 text-lg"></i>
+    <span id="toast-msg" class="text-sm font-medium text-slate-100">Pesan Toast</span>
+  </div>
+
+  <header class="sticky top-0 z-40 w-full glass-panel border-b border-gemini-border/80">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Brand -->
+      <a href="#" onclick="showHomeView(); return false;" class="flex items-center space-x-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyber-400 via-blue-500 to-purple-500 p-[1px] transition-transform duration-300 group-hover:scale-105">
+          <div class="w-full h-full bg-gemini-bg rounded-[11px] flex items-center justify-center">
+            <i class="fa-solid fa-newspaper text-cyber-400 text-sm"></i>
+          </div>
+        </div>
+        <div>
+          <span class="font-bold text-base tracking-tight text-white flex items-center gap-2">
+            AI Studio <span class="text-[11px] px-2 py-0.5 rounded bg-cyber-500/10 text-cyber-400 border border-cyber-500/20 font-mono">DevLog</span>
+          </span>
+        </div>
+      </a>
+
+      <!-- Quick Nav Buttons -->
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/aistudiocheat/aistudiocheat.github.io" target="_blank" rel="noopener" class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 hover:text-white transition-all" title="GitHub Repository">
+          <i class="fa-brands fa-github text-base"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+    <!-- VIEW 1: BLOG HOMEPAGE -->
+    <section id="view-home" class="space-y-10">
+      
+      <!-- Hero / Blog Info Banner -->
+      <div class="text-center max-w-3xl mx-auto pt-4 pb-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-500/10 border border-cyber-500/20 text-cyber-400 text-xs font-mono mb-4">
+          <span class="w-2 h-2 rounded-full bg-cyber-400 animate-ping"></span>
+          <span>Catatan & Artikel AI Studio Github Repo</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
+          Jurnal Dev, Prompt Engineering & API Gemini
+        </h1>
+        <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+          Tempat berbagi ide, tutorial *vibe coding*, optimasi prompt Google AI Studio, serta pustaka eksperimen terkini.
+        </p>
+      </div>
+
+      <!-- Search & Category Filters Bar -->
+      <div class="glass-panel p-4 rounded-2xl border border-slate-800/80 space-y-4">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          
+          <!-- Search Input -->
+          <div class="relative w-full sm:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="search-input" onkeyup="filterArticles()" placeholder="Cari judul, tag, atau kata kunci..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyber-400 transition-colors">
+          </div>
+
+          <!-- Total Count Badge -->
+          <div class="text-xs font-mono text-slate-400 flex items-center gap-2 self-end sm:self-center">
+            <span>Menampilkan:</span>
+            <span id="article-count-badge" class="px-2 py-0.5 rounded bg-slate-800 text-cyber-400 font-bold border border-slate-700">0 Artikel</span>
+          </div>
+        </div>
+
+        <!-- Tag Filters -->
+        <div id="tag-filters" class="flex items-center space-x-2 overflow-x-auto pb-1 text-xs font-mono">
+          <button onclick="setFilterTag('all')" class="tag-btn active-tag px-3 py-1.5 rounded-lg bg-cyber-500 text-gemini-bg font-semibold whitespace-nowrap transition-all">
+            Semua
+          </button>
+          <button onclick="setFilterTag('Gemini API')" class="tag-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 whitespace-nowrap transition-all">
+            Gemini API
+          </button>
+          <button onclick="setFilterTag('Prompt Engineering')" class="tag-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 whitespace-nowrap transition-all">
+            Prompt Engineering
+          </button>
+          <button onclick="setFilterTag('Python')" class="tag-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 whitespace-nowrap transition-all">
+            Python
+          </button>
+          <button onclick="setFilterTag('Tutorial')" class="tag-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 whitespace-nowrap transition-all">
+            Tutorial
+          </button>
+        </div>
+      </div>
+
+      <!-- Featured Article Spotlight -->
+      <div id="featured-article-container"></div>
+
+      <!-- Articles Grid Section -->
+      <div>
+        <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2.5">
+          <i class="fa-solid fa-layer-group text-cyber-400 text-sm"></i> Artikel Terbaru
+        </h2>
+        
+        <!-- Articles Grid -->
+        <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Article cards injected via JavaScript -->
+        </div>
+
+        <!-- Empty Search Result State -->
+        <div id="empty-state" class="hidden text-center py-16 glass-card rounded-2xl border border-dashed border-slate-800">
+          <i class="fa-solid fa-newspaper text-4xl text-slate-600 mb-3 block"></i>
+          <p class="text-slate-400 text-sm font-medium">Tidak ada artikel yang sesuai dengan pencarian Anda.</p>
+          <button onclick="resetFilters()" class="mt-4 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyber-400">
+            Reset Filter Search
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: ARTICLE DETAIL / NASKAH ARTIKEL PAGE -->
+    <section id="view-article" class="hidden space-y-12">
+      
+      <!-- Top Action Navigation -->
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+        <button onclick="showHomeView()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-mono border border-slate-700 transition-all hover:text-cyber-400">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Kembali ke Katalog Artikel</span>
+        </button>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="copyArticleLink()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition-all" title="Bagikan / Salin Tautan">
+            <i class="fa-regular fa-share-from-square"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Article Header & Meta -->
+      <article class="max-w-4xl mx-auto space-y-8">
+        <header class="space-y-4">
+          
+          <div class="flex flex-wrap items-center gap-2" id="article-tags-header">
+            <!-- Dynamic tags -->
+          </div>
+
+          <h1 id="article-title" class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+            Judul Artikel
+          </h1>
+
+          <!-- Author & Meta Info -->
+          <div class="flex items-center justify-between pt-2 border-t border-b border-slate-800/60 py-3 text-xs text-slate-400 font-mono">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyber-400 to-purple-500 flex items-center justify-center font-bold text-gemini-bg">
+                AI
+              </div>
+              <div>
+                <span id="article-author" class="text-slate-200 font-semibold block">AI Studio Team</span>
+                <span id="article-date">Published Date</span>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <span id="article-reading-time"><i class="fa-regular fa-clock mr-1"></i> 5 mnt baca</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dynamic Body Content Rendered from Markdown -->
+        <div id="article-body" class="article-content bg-gemini-card/40 p-6 sm:p-10 rounded-3xl border border-slate-800/80 shadow-2xl">
+          <!-- Rendered Markdown goes here -->
+        </div>
+      </article>
+
+      <!-- Maximum 10 Articles Recommendation Section -->
+      <section class="border-t border-slate-800 pt-12 space-y-6 max-w-5xl mx-auto">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-cyber-400 font-mono text-xs uppercase tracking-widest font-semibold">Eksplorasi Bacaan</span>
+            <h3 class="text-2xl font-extrabold text-white mt-1">Artikel Lainnya dari Repositori</h3>
+          </div>
+          <span class="text-xs font-mono text-slate-400">Maksimal 10 Artikel Terkait</span>
+        </div>
+
+        <!-- Grid of up to 10 articles -->
+        <div id="recommended-articles-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+    </section>
+
+  </main>
+
+  <!-- How-To Publish Modal -->
+  <div id="how-to-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="glass-panel w-full max-w-2xl rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-feather text-cyber-400"></i> Cara Menulis Artikel Baru di GitHub
+        </h3>
+        <button onclick="closeModal('how-to-modal')" class="text-slate-400 hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-4 text-xs text-slate-300 leading-relaxed font-mono overflow-y-auto max-h-[75vh]">
+        <p class="text-slate-200">
+          Setiap kali Anda menulis artikel baru di repositori GitHub, artikel tersebut akan otomatis terbaca oleh website blog ini!
+        </p>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+          <span class="text-cyber-400 font-bold block">Langkah-langkah:</span>
+          <ol class="list-decimal list-inside space-y-2 text-slate-300">
+            <li>Buka repositori GitHub Anda di <strong class="text-amber-300">aistudiocheat/aistudiocheat.github.io</strong>.</li>
+            <li>Masuk ke dalam folder <strong class="text-cyber-400">posts/</strong> (buat folder jika belum ada).</li>
+            <li>Tambahkan file Markdown baru, contoh: <strong class="text-emerald-400">posts/panduan-gemini-3.md</strong>.</li>
+            <li>Isi file tersebut dengan format Frontmatter standar seperti contoh di bawah ini:</li>
+          </ol>
+        </div>
+
+        <!-- Sample Markdown Template -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 relative">
+          <button onclick="copyModalTemplate()" class="absolute top-3 right-3 text-[11px] text-cyber-400 hover:underline">
+            <i class="fa-regular fa-copy"></i> Copy Template
+          </button>
+          <pre id="md-template" class="text-[11px] text-amber-200 whitespace-pre-wrap">---
+title: "Panduan Lengkap Optimalisasi Gemini API"
+date: "2026-09-05"
+author: "AI Studio Cheat"
+tags: ["Gemini API", "Tutorial", "Python"]
+summary: "Ringkasan singkat artikel yang akan muncul di kartu homepage."
+---
+
+# Judul Utama Artikel
+
+Tulis naskah artikel Anda dalam bentuk Markdown di sini...
+
+```python
+# Kode contoh
+import google.generativeai as genai
+print("Halo Gemini!")
+```</pre>
+        </div>
+
+        <p class="text-slate-400 text-[11px]">
+          *Catatan: Jika repositori Anda belum siap, blog ini secara otomatis menampilkan contoh artikel bawaan (mock fallback) sehingga tampilan selalu siap dibaca.*
+        </p>
+
+        <div class="pt-2 flex justify-end">
+          <button onclick="closeModal('how-to-modal')" class="px-4 py-2 rounded-lg bg-cyber-500 text-gemini-bg font-bold text-xs hover:bg-cyber-400">
+            Paham, Mengerti!
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-gemini-border/60 py-8 bg-slate-950/90 text-xs text-slate-400 mt-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-cyber-400"></span>
+        <span class="font-mono text-slate-300">AI Studio DevLog</span>
+        <span>— GitHub Pages Developer Blog</span>
+      </div>
+      <p class="text-slate-500 font-mono">
+        Auto-synced with GitHub Repo Markdown Articles
+      </p>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    // MOCK ARTICLES DATASET (Fallback if repo posts folder is not yet created)
+    const MOCK_ARTICLES = [
+      {
+        id: "panduan-gemini-3-5-flash",
+        slug: "panduan-gemini-3-5-flash",
+        title: "Panduan Integrasi Gemini 3.5 Flash & Optimasi Prompt System",
+        date: "2026-09-04",
+        author: "AI Studio Architect",
+        tags: ["Gemini API", "Prompt Engineering", "Tutorial"],
+        summary: "Pelajari cara memaksimalkan performa Gemini 3.5 Flash dengan rancangan System Instruction yang presisi, kontrol temperatur, dan penanganan structured JSON.",
+        content: `
+# Integrasi Gemini 3.5 Flash Dalam Aplikasi Modern
+
+Lini model **Gemini 3.5 Flash** membawa peningkatan signifikan dari segi kecepatan, efisiensi token, dan pemahaman instruksi yang kompleks. Artikel ini akan membahas teknik terbaik bagi developer yang ingin mengintegrasikannya ke dalam aplikasi web atau backend.
+
+---
+
+## 1. Menyiapkan Konfigurasi API
+
+Gunakan library resmi Google Generative AI untuk Python atau REST API direct HTTP request.
+
+\`\`\`python
+import google.generativeai as genai
+
+# Inisialisasi API Key
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
+
+# Pilih model Gemini 3.5 Flash
+model = genai.GenerativeModel(
+    model_name="gemini-2.5-flash-preview-09-2025",
+    system_instruction="Anda adalah senior AI assistant yang memberikan jawaban ringkas, akurat, dan terstruktur."
+)
+
+response = model.generate_content("Jelaskan perbedaan REST vs GraphQL dalam 3 poin.")
+print(response.text)
+\`\`\`
+
+> **Tips Developer**: Selalu tetapkan \`system_instruction\` di tingkat inisialisasi model agar LLM mempertahankan persona yang konsisten selama sesi percakapan.
+
+---
+
+## 2. Praktik Terbaik Formats Response JSON
+
+Jika Anda membangun backend API yang membutuhkan output data terstruktur, gunakan konfigurasi JSON Schema bawaan Gemini:
+
+\`\`\`javascript
+const generationConfig = {
+  responseMimeType: "application/json",
+  responseSchema: {
+    type: "OBJECT",
+    properties: {
+      status: { type: "STRING" },
+      results: { 
+        type: "ARRAY", 
+        items: { type: "STRING" } 
+      }
+    }
+  }
+};
+\`\`\`
+
+---
+
+## Kesimpulan
+Dengan memanfaatkan instruksi sistem yang tepat dan pembatasan format JSON, Gemini 3.5 Flash sangat andal untuk pemrosesan data real-time dengan latency minimal.
+        `
+      },
+      {
+        id: "vibe-coding-single-file-html",
+        slug: "vibe-coding-single-file-html",
+        title: "Seni Vibe Coding: Membangun Web App Berkinerja Tinggi dalam 1 File HTML",
+        date: "2026-08-28",
+        author: "Frontend Craftsman",
+        tags: ["Tutorial", "Prompt Engineering"],
+        summary: "Mengapa pendekatan Single-File HTML dengan Tailwind CDN dan JS murni semakin populer di kalangan developer AI dan prototipe cepat.",
+        content: `
+# Seni Vibe Coding: Membangun Web App dalam 1 File HTML
+
+Istilah *Vibe Coding* kini marak digunakan di mana developer berkolaborasi dengan AI Studio untuk menciptakan aplikasi web utuh hanya dalam hitungan menit.
+
+## Mengapa Pendekatan Single File?
+
+1. **Tanpa Node.js / Build Steps**: Cukup simpan file \`index.html\` dan buka di browser atau GitHub Pages.
+2. **Portabilitas Tinggi**: Mudah dibagikan di GitHub Pages, Netlify, atau Replit tanpa konfigurasi Webpack/Vite.
+3. **Iterasi Cepat Bersama AI**: Cukup kirim seluruh file HTML ke Gemini dan minta perbaikan langsung.
+
+\`\`\`html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <script src="https://cdn.tailwindcss.com"><\/script>
+</head>
+<body class="bg-slate-900 text-white p-8">
+  <h1 class="text-2xl font-bold">Hello Single File App!</h1>
+</body>
+</html>
+\`\`\`
+
+---
+
+## Kesimpulan
+Pendekatan ini sangat ideal untuk prototipe, halaman dokumentasi, dashboard internal, serta repositori GitHub Pages personal.
+        `
+      },
+      {
+        id: "python-gemini-sdk-cheat-sheet",
+        slug: "python-gemini-sdk-cheat-sheet",
+        title: "Cheat Sheet Python SDK Gemini: Dari Basic Text Hingga Multimodal Vision",
+        date: "2026-08-15",
+        author: "Python AI Dev",
+        tags: ["Python", "Gemini API"],
+        summary: "Rangkuman potongan kode Python paling sering digunakan untuk berinteraksi dengan API Gemini termasuk penanganan gambar dan dokumen PDF.",
+        content: `
+# Cheat Sheet Python SDK Gemini
+
+Kumpulan fungsi siap pakai untuk memproses teks, gambar, dan analisis berkas menggunakan Python SDK Google Generative AI.
+
+## 1. Analisis Gambar (Vision)
+
+\`\`\`python
+import PIL.Image
+
+img = PIL.Image.open("diagram.png")
+response = model.generate_content(["Jelaskan isi diagram arsitektur berikut:", img])
+print(response.text)
+\`\`\`
+
+## 2. Streaming Response
+
+Untuk memberikan efek ketikan (typing effect) langsung ke pengguna:
+
+\`\`\`python
+response = model.generate_content("Tuliskan esai singkat...", stream=True)
+for chunk in response:
+    print(chunk.text, end="", flush=True)
+\`\`\`
+
+---
+
+Simpan catatan ini untuk proyek Python AI Anda berikutnya!
+        `
+      },
+      {
+        id: "mengenal-system-instructions-gemini",
+        slug: "mengenal-system-instructions-gemini",
+        title: "Panduan System Instructions: Mengendalikan Persona & Output AI",
+        date: "2026-08-02",
+        author: "Prompt Engineer",
+        tags: ["Prompt Engineering"],
+        summary: "Bagaimana cara menyusun System Instruction agar Gemini tidak bertele-tele dan selalu mematuhi instruksi dengan akurasi 99%.",
+        content: `
+# Menguasai System Instructions di AI Studio
+
+System Instruction (SI) adalah pondasi dasar sebelum user memberikan *prompt* input. SI menetapkan peran, batasan, dan format jawaban AI.
+
+### Contoh System Instruction yang Efektif:
+
+\`\`\`text
+Anda adalah Senior Code Auditor.
+Tugas Anda: Tinjau kode yang dikirim pengguna.
+Aturan:
+1. Cari bug keamanan dan beri nilai keparahan (High/Medium/Low).
+2. Jangan beri teks pembuka sopan seperti "Tentu saya bisa bantu".
+3. Berikan solusi perbaikan langsung dalam bentuk code block.
+\`\`\`
+
+Dengan instruksi ketat seperti di atas, hasil keluaran AI akan konsisten dan tidak keluar dari konteks.
+        `
+      },
+      {
+        id: "hosting-gratis-github-pages-ai-site",
+        slug: "hosting-gratis-github-pages-ai-site",
+        title: "Deploy Blog & Tools AI Gratis di GitHub Pages dalam 3 Menit",
+        date: "2026-07-20",
+        author: "DevOps Explorer",
+        tags: ["Tutorial"],
+        summary: "Langkah-langkah praktis mengaktifkan GitHub Pages dari repositori Anda untuk mempublikasikan blog developer ini.",
+        content: `
+# Deploy Blog di GitHub Pages
+
+GitHub Pages menyediakan hosting web gratis tanpa batas bandwidth untuk repositori publik.
+
+## Langkah-langkah Quick Deploy:
+
+1. Buat repositori bernama \`username.github.io\` di GitHub.
+2. Upload file \`index.html\` ini ke root repositori.
+3. Buka **Settings -> Pages** di halaman repositori.
+4. Pada opsi **Source**, pilih branch \`main\` dan folder \`/ (root)\`.
+5. Klik **Save**. Halaman web Anda siap diakses dalam 1-2 menit!
+        `
+      }
+    ];
+
+    // GLOBAL STATE
+    let allArticles = [];
+    let currentFilterTag = 'all';
+    let currentArticle = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Configure Marked.js renderer & syntax highlighter
+      marked.setOptions({
+        highlight: function(code, lang) {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+          return hljs.highlight(code, { language }).value;
+        },
+        langPrefix: 'hljs language-'
+      });
+
+      // Load Articles (Attempt Fetch from Repo / Fallback to MOCK)
+      loadArticles();
+
+      // Handle Browser Hash Navigation (SPA)
+      window.addEventListener('hashchange', handleHashRouting);
+      
+      // Handle Scroll Progress for Article Reading
+      window.addEventListener('scroll', updateReadingProgress);
+    });
+
+    // FETCH ARTICLES FROM REPOSITORY OR FALLBACK
+    async function loadArticles() {
+      try {
+        const response = await fetch('posts/manifest.json');
+        if (response.ok) {
+          const repoArticles = await response.json();
+          allArticles = repoArticles;
+        } else {
+          allArticles = MOCK_ARTICLES;
+        }
+      } catch (err) {
+        console.log("Menggunakan fallback data artikel bawaan.");
+        allArticles = MOCK_ARTICLES;
+      }
+
+      renderArticles();
+      handleHashRouting();
+    }
+
+    // RENDER HOMEPAGE ARTICLES GRID
+    function renderArticles() {
+      const grid = document.getElementById('articles-grid');
+      const featuredContainer = document.getElementById('featured-article-container');
+      const emptyState = document.getElementById('empty-state');
+      const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+
+      // Filter Logic
+      const filtered = allArticles.filter(art => {
+        const matchesTag = currentFilterTag === 'all' || art.tags.includes(currentFilterTag);
+        const matchesSearch = art.title.toLowerCase().includes(searchVal) || 
+                              art.summary.toLowerCase().includes(searchVal) ||
+                              art.tags.some(t => t.toLowerCase().includes(searchVal));
+        return matchesTag && matchesSearch;
+      });
+
+      // Update Count Badge
+      document.getElementById('article-count-badge').innerText = `${filtered.length} Artikel`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        featuredContainer.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      // Render Featured Post
+      if (searchVal === '' && currentFilterTag === 'all' && filtered.length > 0) {
+        const feat = filtered[0];
+        featuredContainer.innerHTML = `
+          <div onclick="navigateToArticle('${feat.slug}')" class="glass-card rounded-3xl p-6 sm:p-8 border border-cyber-500/30 cursor-pointer group hover:border-cyber-400 relative overflow-hidden mb-8">
+            <div class="absolute top-0 right-0 px-4 py-1.5 bg-gradient-to-l from-cyber-500 to-blue-500 text-gemini-bg font-mono text-[10px] font-extrabold tracking-wider uppercase rounded-bl-xl shadow-lg">
+              <i class="fa-solid fa-star mr-1"></i> Featured Post
+            </div>
+
+            <div class="space-y-3 max-w-3xl">
+              <div class="flex items-center gap-2 font-mono text-xs text-cyber-400">
+                <span>${feat.date}</span>
+                <span>•</span>
+                <span>${feat.author}</span>
+              </div>
+              <h2 class="text-2xl sm:text-4xl font-extrabold text-white group-hover:text-cyber-400 transition-colors leading-tight">
+                ${feat.title}
+              </h2>
+              <p class="text-slate-300 text-xs sm:text-sm leading-relaxed line-clamp-3">
+                ${feat.summary}
+              </p>
+              
+              <div class="pt-2 flex items-center justify-between">
+                <div class="flex flex-wrap gap-1.5">
+                  ${feat.tags.map(t => `<span class="px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-mono">${t}</span>`).join('')}
+                </div>
+                <span class="text-xs text-cyber-400 font-mono font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                  Baca Artikel <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        featuredContainer.innerHTML = '';
+      }
+
+      // Render Articles Grid Cards
+      const displayList = (searchVal === '' && currentFilterTag === 'all') ? filtered.slice(1) : filtered;
+
+      grid.innerHTML = displayList.map(art => `
+        <div onclick="navigateToArticle('${art.slug}')" class="glass-card rounded-2xl p-6 flex flex-col justify-between cursor-pointer group border border-slate-800/80">
+          <div>
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-3">
+              <span class="text-cyber-400">${art.date}</span>
+              <span><i class="fa-regular fa-clock mr-1"></i> 4 mnt</span>
+            </div>
+
+            <h3 class="text-lg font-bold text-white mb-2 group-hover:text-cyber-400 transition-colors leading-snug">
+              ${art.title}
+            </h3>
+
+            <p class="text-slate-400 text-xs leading-relaxed line-clamp-3 mb-4">
+              ${art.summary}
+            </p>
+          </div>
+
+          <div class="pt-4 border-t border-slate-800/60 flex items-center justify-between">
+            <div class="flex flex-wrap gap-1">
+              ${art.tags.slice(0, 2).map(t => `<span class="px-2 py-0.5 rounded bg-slate-900 text-slate-300 text-[10px] font-mono border border-slate-800">${t}</span>`).join('')}
+            </div>
+            <span class="text-[11px] text-slate-400 group-hover:text-cyber-400 font-mono transition-colors">
+              Baca <i class="fa-solid fa-chevron-right text-[9px] ml-0.5"></i>
+            </span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function setFilterTag(tag) {
+      currentFilterTag = tag;
+      document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.classList.remove('bg-cyber-500', 'text-gemini-bg', 'font-semibold');
+        btn.classList.add('bg-slate-800', 'text-slate-300');
+      });
+
+      if (event && event.currentTarget) {
+        event.currentTarget.classList.remove('bg-slate-800', 'text-slate-300');
+        event.currentTarget.classList.add('bg-cyber-500', 'text-gemini-bg', 'font-semibold');
+      }
+
+      renderArticles();
+    }
+
+    function filterArticles() {
+      renderArticles();
+    }
+
+    function resetFilters() {
+      document.getElementById('search-input').value = '';
+      currentFilterTag = 'all';
+      renderArticles();
+    }
+
+    function navigateToArticle(slug) {
+      window.location.hash = `#article/${slug}`;
+    }
+
+    function showHomeView() {
+      window.location.hash = '';
+    }
+
+    // ROUTING CONTROLLER
+    function handleHashRouting() {
+      const hash = window.location.hash;
+      const homeView = document.getElementById('view-home');
+      const articleView = document.getElementById('view-article');
+
+      if (hash.startsWith('#article/')) {
+        const slug = hash.replace('#article/', '');
+        const found = allArticles.find(a => a.slug === slug);
+        if (found) {
+          currentArticle = found;
+          renderSingleArticlePage(found);
+          homeView.classList.add('hidden');
+          articleView.classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          showHomeView();
+        }
+      } else {
+        homeView.classList.remove('hidden');
+        articleView.classList.add('hidden');
+        document.getElementById('reading-progress').style.width = '0%';
+        resetSEOToDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // DYNAMIC SEO UPDATE FOR SPA ARTICLES
+    function updateArticleSEO(art) {
+      const fullUrl = window.location.href;
+      document.title = `${art.title} — AI Studio DevLog`;
+      
+      // Update Meta Description
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute('content', art.summary);
+
+      // Update OG Meta Tags
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.setAttribute('content', art.title);
+
+      let ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc) ogDesc.setAttribute('content', art.summary);
+
+      let ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.setAttribute('content', fullUrl);
+
+      // Dynamic Inject / Update JSON-LD Article Schema
+      let oldSchema = document.getElementById('schema-article');
+      if (oldSchema) oldSchema.remove();
+
+      const articleSchema = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": art.title,
+        "description": art.summary,
+        "datePublished": art.date,
+        "author": {
+          "@type": "Person",
+          "name": art.author || "AI Studio Team"
+        },
+        "keywords": art.tags.join(", "),
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": fullUrl
+        }
+      };
+
+      const script = document.createElement('script');
+      script.id = 'schema-article';
+      script.type = 'application/ld+json';
+      script.text = JSON.stringify(articleSchema);
+      document.head.appendChild(script);
+    }
+
+    function resetSEOToDefault() {
+      document.title = "AI Studio DevLog — Blog & Catatan Developer Gemini AI, Prompt Engineering & Python";
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute('content', "Pusat tutorial Gemini API, prompt engineering, AI automation, dan vibe coding. Tempat belajar pemrograman AI modern.");
+      
+      let oldSchema = document.getElementById('schema-article');
+      if (oldSchema) oldSchema.remove();
+    }
+
+    // RENDER NASKAH ARTIKEL PAGE
+    function renderSingleArticlePage(art) {
+      updateArticleSEO(art);
+      document.getElementById('article-title').innerText = art.title;
+      document.getElementById('article-date').innerText = art.date;
+      document.getElementById('article-author').innerText = art.author || 'AI Studio Team';
+      
+      const wordCount = art.content.split(/\s+/).length;
+      const readTime = Math.ceil(wordCount / 180);
+      document.getElementById('article-reading-time').innerHTML = `<i class="fa-regular fa-clock mr-1"></i> ${readTime} mnt baca`;
+
+      document.getElementById('article-tags-header').innerHTML = art.tags.map(t => 
+        `<span class="px-3 py-1 rounded-full bg-cyber-500/10 text-cyber-400 border border-cyber-500/20 text-xs font-mono font-semibold">${t}</span>`
+      ).join('');
+
+      const rawHtml = marked.parse(art.content);
+      const articleBody = document.getElementById('article-body');
+      
+      // CTA Fastwork Service Banner
+      const fastworkCta = `
+        <div class="mt-12 pt-8 border-t border-slate-800">
+          <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-cyber-500/40 bg-gradient-to-br from-slate-900/90 via-gemini-bg to-slate-900/90 shadow-2xl relative overflow-hidden group">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-cyber-500/10 rounded-full blur-2xl group-hover:bg-cyber-500/20 transition-all"></div>
+            
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
+              <div class="space-y-2 max-w-xl">
+                <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-cyber-500/10 border border-cyber-500/30 text-cyber-400 text-[11px] font-mono font-bold">
+                  <i class="fa-solid fa-bolt text-amber-400"></i> Layanan Profesional AI
+                </div>
+                <h3 class="text-xl font-extrabold text-white tracking-tight">
+                  Butuh Solusi AI Automation & Integrasi API Gemini?
+                </h3>
+                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                  Percayakan pembuatan workflow otomatisasi, prompt engineering, hingga web app AI kustom Anda kepada kami secara aman dan profesional via Fastwork.
+                </p>
+              </div>
+
+              <a href="https://fastwork.id/user/aistudiocheat/ai-automation-23623063?utm_source=app_sharing" 
+                 target="_blank" 
+                 rel="noopener noreferrer" 
+                 class="w-full sm:w-auto text-center px-5 py-3 rounded-xl bg-gradient-to-r from-cyber-500 to-blue-600 hover:from-cyber-400 hover:to-blue-500 text-gemini-bg font-extrabold text-xs font-mono tracking-wide transition-all shadow-lg shadow-cyber-500/20 hover:scale-105 shrink-0 flex items-center justify-center gap-2">
+                <span>Pesan Jasa di Fastwork</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      articleBody.innerHTML = rawHtml + fastworkCta;
+
+      // Add Copy Buttons to Code Blocks
+      articleBody.querySelectorAll('pre').forEach((pre) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-code-btn';
+        copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+        copyBtn.onclick = () => {
+          const codeText = pre.querySelector('code').innerText;
+          navigator.clipboard.writeText(codeText);
+          copyBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Copied!';
+          setTimeout(() => { copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 2000);
+        };
+        wrapper.appendChild(copyBtn);
+      });
+
+      // Render max 10 recommended articles
+      renderRecommendedArticles(art.slug);
+    }
+
+    function renderRecommendedArticles(currentSlug) {
+      const container = document.getElementById('recommended-articles-grid');
+      const otherArticles = allArticles.filter(a => a.slug !== currentSlug).slice(0, 10);
+
+      if (otherArticles.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 font-mono italic">Belum ada artikel tambahan lainnya.</p>`;
+        return;
+      }
+
+      container.innerHTML = otherArticles.map(art => `
+        <div onclick="navigateToArticle('${art.slug}')" class="glass-card p-4 rounded-xl border border-slate-800 flex items-start space-x-3 cursor-pointer group hover:border-cyber-400/40">
+          <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-cyber-400 font-mono text-xs shrink-0 group-hover:bg-cyber-500 group-hover:text-gemini-bg transition-colors">
+            <i class="fa-solid fa-file-lines"></i>
+          </div>
+          <div class="space-y-1 min-w-0">
+            <div class="flex items-center space-x-2 text-[10px] font-mono text-slate-400">
+              <span>${art.date}</span>
+              <span>•</span>
+              <span class="text-cyber-400">${art.tags[0] || 'Article'}</span>
+            </div>
+            <h4 class="text-xs font-bold text-slate-200 group-hover:text-cyber-400 transition-colors truncate">
+              ${art.title}
+            </h4>
+            <p class="text-[11px] text-slate-400 line-clamp-1">
+              ${art.summary}
+            </p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateReadingProgress() {
+      const articleView = document.getElementById('view-article');
+      if (articleView.classList.contains('hidden')) return;
+
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('reading-progress').style.width = scrolled + '%';
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').innerText = message;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    function copyArticleLink() {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url);
+      showToast("Tautan artikel berhasil disalin!");
+    }
+
+    function copyModalTemplate() {
+      const text = document.getElementById('md-template').innerText;
+      navigator.clipboard.writeText(text);
+      showToast("Template Markdown disalin!");
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  </script>
+</body>
+</html>
