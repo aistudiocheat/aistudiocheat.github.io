@@ -2,6 +2,7 @@
 title: "Bahaya Aplikasi Android WebView Hasil AI Instan Rawan Ditolak Google Play"
 author: "AI Studio Cheat"
 tags: ["Gemini API","Google AI Studio","Tutorial","Google Play Console"] 
+summary: "Aplikasi hasil generate AI instan dari Google AI Studio tersebut hampir 90% akan langsung diblokir dan ditolak saat diunggah ke Google Play Console"
 ---
 
 # Bahaya Aplikasi Android WebView Hasil AI Instan Rawan Ditolak Google Play
