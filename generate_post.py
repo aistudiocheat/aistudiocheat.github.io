@@ -47,9 +47,9 @@ tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 Catatan: Jangan tuliskan link CTA Fastwork secara manual di teks ini, karena sistem HTML Anda sudah menampilkannya otomatis di bawah file markdown.
 """
 
-# 4. Memanggil model Gemini 2.5 Flash yang cerdas dan efisien
+# 4. Memanggil model Gemini 2.6 Flash yang cerdas dan efisien
 response = client.models.generate_content(
-    model='gemini-2.5-flash',
+    model='gemini-2.6-flash',
     contents=prompt,
 )
 
