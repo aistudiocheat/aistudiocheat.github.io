@@ -27,17 +27,21 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: python generate_post.py
 
-    - name: 5. Push Artikel Baru ke Folder Posts
+        - name: 5. Push Artikel Baru ke Folder Posts
       env:
-        # Menggunakan token akses yang sudah Anda buat di Secrets tadi
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         git config --global user.name "Agen AI Fastwork Lead"
         git config --global user.email "ai-agent-automation@github.com"
         
-        # Atur agar Git menggunakan token rahasia Anda saat push kode
-        git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@://github.com{{ github.repository }}.git
-        
+        # Tambahkan perubahan ke staging
         git add posts/*.md
-        # Periksa apakah ada file baru sebelum melakukan commit agar tidak eror
-        git diff-index --quiet HEAD || (git commit -m "Automated: Artikel konversi baru dari Gemini AI" && git push origin main)
+        
+        # Lakukan commit jika ada file baru, lalu langsung push dengan token bawaan GitHub Actions
+        if ! git diff-index --quiet HEAD; then
+          git commit -m "Automated: Artikel konversi baru dari Gemini AI"
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@://github.com{{ github.repository }}.git HEAD
+        else
+          echo "Tidak ada artikel baru yang dibuat."
+        fi
+
