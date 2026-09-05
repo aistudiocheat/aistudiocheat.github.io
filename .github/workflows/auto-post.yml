@@ -44,4 +44,3 @@ jobs:
         else
           echo "Tidak ada artikel baru yang dibuat."
         fi
-
