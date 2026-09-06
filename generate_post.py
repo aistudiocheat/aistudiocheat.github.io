@@ -106,7 +106,7 @@ if os.path.exists("posts"):
             
             # Membentuk string URL secara utuh dan saklek ke domain aistudiocheat
             xml_item_artikel += '  <url>\n'
-            xml_item_artikel += f'    <loc>https://github.io{clean_slug_artikel}</loc>\n'
+            xml_item_artikel += f'    <loc>https://aistudiocheat.github.io/#article/{clean_slug_artikel}</loc>\n'
             xml_item_artikel += f'    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n'
             xml_item_artikel += '    <changefreq>weekly</changefreq>\n'
             xml_item_artikel += '    <priority>0.8</priority>\n'
