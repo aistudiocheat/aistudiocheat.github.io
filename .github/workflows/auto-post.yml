@@ -35,14 +35,15 @@ jobs:
       run: |
         git config --global user.name "Agen AI Fastwork Lead"
         git config --global user.email "ai-agent-automation@github.com"
-        
-        # Tambahkan semua file markdown baru di folder posts
-        git add posts/*.md
-        
+
+        # BERUBAH DI SINI: Menyuruh Git mendeteksi file posts DAN sitemap.xml sekaligus
+        git add posts/ sitemap.xml
+
         # Lakukan commit jika ada file baru, lalu lakukan push aman ke branch aktif saat ini
         if ! git diff-index --quiet HEAD; then
-          git commit -m "Automated: Artikel konversi baru dari Gemini AI"
+          git commit -m "Automated: Artikel baru dan update sitemap.xml dari Gemini"
           git push origin HEAD:${{ github.ref_name }}
         else
-          echo "Tidak ada artikel baru yang dideteksi."
+          echo "Tidak ada perubahan artikel baru."
         fi
+
