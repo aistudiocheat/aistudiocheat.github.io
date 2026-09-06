@@ -13,7 +13,7 @@ client = genai.Client(http_options=HttpOptions(api_version="v1"))
 
 # 2. Bank Ide: 20 Topik Masalah Konversi Google AI Studio ke Versi Produksi
 DAFTAR_TOPIK = [
-    "Cara Integrasi API Gemini 2.5 Flash ke Android Studio Kotlin untuk Pemula",
+    "Cara Integrasi API Gemini 3.5 Flash ke Android Studio Kotlin untuk Pemula",
     "Kenapa Aplikasi Android Buatan Google AI Studio Tidak Bisa Langsung di-Upload ke Play Store?",
     "Panduan Membuat Aplikasi Chatbot Android Menggunakan Template Google AI Studio",
     "Cara Mengatasi Error API Key Bocor saat Export Project dari Google AI Studio ke Android Studio",
@@ -68,7 +68,7 @@ konten_markdown = ""
 for percobaan in range(maksimal_coba):
     try:
         response = client.models.generate_content(
-            model='gemini-2.6-flash',
+            model='gemini-3.5-flash',
             contents=prompt,
         )
         konten_markdown = response.text
