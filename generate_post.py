@@ -2,13 +2,15 @@ import os
 import datetime
 import re
 import random
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
 from google import genai
 from google.genai.types import HttpOptions
 
-# 1. Gunakan API Versi v1 Stabil agar tidak terjadi bentrok model
+# 1. Gunakan API Versi v1 Stabil
 client = genai.Client(http_options=HttpOptions(api_version="v1"))
 
-# 2. Bank Ide: 20 Topik Masalah Konversi dari Google AI Studio ke Versi Produksi (Siap Play Store)
+# 2. Bank Ide: 20 Topik Masalah Konversi Google AI Studio ke Versi Produksi
 DAFTAR_TOPIK = [
     "Cara Integrasi API Gemini 2.5 Flash ke Android Studio Kotlin untuk Pemula",
     "Kenapa Aplikasi Android Buatan Google AI Studio Tidak Bisa Langsung di-Upload ke Play Store?",
@@ -22,7 +24,7 @@ DAFTAR_TOPIK = [
     "Cara Mengamankan Gemini API Key Menggunakan Firebase Vertex AI di Android",
     "Mengatasi Kendala Layout Thrashing saat Streaming Respons Gemini API di Jetpack Compose",
     "Cara Membangun Backend Proxy Node.js agar API Key Google AI Studio Tidak Ditanam di Aplikasi Android",
-    "Panduan Konfigurasi ProGuard dan R8 untuk Mengamankan Kode Aplikasi Android Berbasis Gemini AI",
+    "Panduan Konfigurasi ProGuard and R8 untuk Mengamankan Kode Aplikasi Android Berbasis Gemini AI",
     "Cara Mengatur Retrofit dan OkHttpClient untuk Handle Timeout Panjang pada Model Gemini Pro",
     "Arsitektur MVVM yang Benar untuk Mengelola State Output Google AI Studio di Android Studio",
     "Cara Membuat Pipeline CI/CD GitHub Actions untuk Otomatisasi Build APK Aplikasi Android AI Anda",
@@ -35,10 +37,10 @@ DAFTAR_TOPIK = [
 TOPIK_HARI_INI = random.choice(DAFTAR_TOPIK)
 print(f"Agen AI sedang menulis artikel konversi tentang: {TOPIK_HARI_INI}...")
 
-# 3. Prompt Khusus SEO + Agitasi Masalah untuk Konversi Jasa Fastwork
+# 3. Prompt Khusus SEO + Agitasi Masalah Jasa Fastwork
 prompt = f"""
 Anda adalah Penulis Konten Tech SEO Senior dan Pakar DevOps Android.
-Tulis sebuah artikel tutorial/edukasi blog berformat Markdown (.md) yang mendalam, berbobot, dan sangat membantu pembaca tentang: "{TOPIK_HARI_INI}".
+Tulis sebuah artikel tutorial/edukasi blog berformat Markdown (.md) yang mendalam dan sangat membantu pembaca tentang: "{TOPIK_HARI_INI}".
 
 Struktur Artikel Wajib:
 1. Front Matter di bagian paling atas:
@@ -51,29 +53,67 @@ tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 
 2. Bagian Isi Artikel:
 - Berikan langkah-langkah tutorial yang benar-benar solutif dengan heading (##) dan blok kode.
-- Agitasi Masalah: Di bagian menjelang akhir artikel, jelaskan secara halus bahwa mengonfigurasi proyek dari Google AI Studio hingga menjadi versi produksi (seperti setup backend proxy, Firebase, arsitektur kode bersih MVVM, keamanan ProGuard, keystore, hingga DevOps CI/CD) sangat rumit bagi pemula atau pemilik bisnis. Berikan penekanan bahwa menggunakan jasa ahli akan menghemat waktu mereka dan menjamin keamanan aplikasi.
+- Agitasi Masalah: Di bagian menjelang akhir artikel, jelaskan secara halus bahwa mengonfigurasi proyek dari Google AI Studio hingga menjadi versi produksi sangat rumit bagi pemula.
 
 Catatan: Jangan tuliskan link CTA Fastwork secara manual di teks ini.
 """
 
-# 4. Panggil model Gemini 3.5 Flash
+# 4. Panggil model Gemini
 response = client.models.generate_content(
-    model='gemini-3.5-flash',
+    model='gemini-2.5-flash',
     contents=prompt,
 )
 
 konten_markdown = response.text
 
-# 5. Membuat nama file murni kata kunci (Slug Tanpa Angka Tanggal)
+# 5. Membuat nama file slug tanpa tanggal
 slug = TOPIK_HARI_INI.lower()
 slug = re.sub(r'[^a-z0-9\s-]', '', slug)
 slug = re.sub(r'[\s-]+', '-', slug).strip('-')
-
 nama_file = f"posts/{slug}.md"
 
-# 6. Simpan file
+# 6. Simpan file markdown artikel
 os.makedirs("posts", exist_ok=True)
 with open(nama_file, "w", encoding="utf-8") as f:
     f.write(konten_markdown)
-
 print(f"Sukses! Artikel ramah SEO berhasil disimpan di: {nama_file}")
+
+# =====================================================================
+# 7. FITUR OTOMATIS GENERATE/UPDATE SITEMAP.XML UNTUK GOOGLE SEO
+# =====================================================================
+DOMAIN_UTAMA = "https://github.io"
+SITEMAP_PATH = "sitemap.xml"
+
+# Struktur dasar sitemap XML
+urlset = ET.Element("urlset", xmlns="http://sitemaps.org")
+
+# Masukkan Halaman Utama (Beranda)
+url_home = ET.SubElement(urlset, "url")
+ET.SubElement(url_home, "loc").text = f"{DOMAIN_UTAMA}/"
+ET.SubElement(url_home, "lastmod").text = datetime.date.today().isoformat()
+ET.SubElement(url_home, "changefreq").text = "daily"
+ET.SubElement(url_home, "priority").text = "1.0"
+
+# Deteksi otomatis semua artikel .md yang sudah ada di folder posts/
+if os.path.exists("posts"):
+    for file in os.listdir("posts"):
+        if file.endswith(".md"):
+            # Menyesuaikan dengan sistem routing Hash (#article/nama-file) pada blog Anda
+            clean_slug = file.replace(".md", "")
+            url_article_path = f"{DOMAIN_UTAMA}/#article/{clean_slug}"
+            
+            url_node = ET.SubElement(urlset, "url")
+            ET.SubElement(url_node, "loc").text = url_article_path
+            ET.SubElement(url_node, "lastmod").text = datetime.date.today().isoformat()
+            ET.SubElement(url_node, "changefreq").text = "weekly"
+            ET.SubElement(url_node, "priority").text = "0.8"
+
+# Format agar kode XML rapi (pretty print)
+xml_string = ET.tostring(urlset, encoding="utf-8")
+xml_pretty = minidom.parseString(xml_string).toprettyxml(indent="  ")
+
+# Simpan/Overwrite file sitemap.xml di root folder repositori
+with open(SITEMAP_PATH, "w", encoding="utf-8") as f:
+    f.write(xml_pretty)
+
+print("Sukses! File sitemap.xml berhasil diperbarui otomatis.")
