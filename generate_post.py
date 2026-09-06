@@ -2,6 +2,7 @@ import os
 import datetime
 import re
 import random
+import time
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from google import genai
@@ -24,7 +25,7 @@ DAFTAR_TOPIK = [
     "Cara Mengamankan Gemini API Key Menggunakan Firebase Vertex AI di Android",
     "Mengatasi Kendala Layout Thrashing saat Streaming Respons Gemini API di Jetpack Compose",
     "Cara Membangun Backend Proxy Node.js agar API Key Google AI Studio Tidak Ditanam di Aplikasi Android",
-    "Panduan Konfigurasi ProGuard and R8 untuk Mengamankan Kode Aplikasi Android Berbasis Gemini AI",
+    "Panduan Konfigurasi ProGuard dan R8 untuk Mengamankan Kode Aplikasi Android Berbasis Gemini AI",
     "Cara Mengatur Retrofit dan OkHttpClient untuk Handle Timeout Panjang pada Model Gemini Pro",
     "Arsitektur MVVM yang Benar untuk Mengelola State Output Google AI Studio di Android Studio",
     "Cara Membuat Pipeline CI/CD GitHub Actions untuk Otomatisasi Build APK Aplikasi Android AI Anda",
@@ -58,13 +59,27 @@ tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 Catatan: Jangan tuliskan link CTA Fastwork secara manual di teks ini.
 """
 
-# 4. Panggil model Gemini
-response = client.models.generate_content(
-    model='gemini-3.5-flash',
-    contents=prompt,
-)
+# =====================================================================
+# 4. SISTEM ANTI-SIBUK (RETRY LOGIC DENGAN 3 KALI KESEMPATAN COBA LAGI)
+# =====================================================================
+maksimal_coba = 3
+konten_markdown = ""
 
-konten_markdown = response.text
+for percobaan in range(maksimal_coba):
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.6-flash',
+            contents=prompt,
+        )
+        konten_markdown = response.text
+        if konten_markdown:
+            break
+    except Exception as e:
+        print(f"Server Google sibuk (Eror: {e}). Mencoba lagi dalam 10 detik... (Percobaan {percobaan + 1}/{maksimal_coba})")
+        time.sleep(10)
+
+if not konten_markdown:
+    raise Exception("Gagal mendapatkan respons dari Gemini setelah dicoba 3 kali karena server Google sibuk.")
 
 # 5. Membuat nama file slug tanpa tanggal
 slug = TOPIK_HARI_INI.lower()
@@ -84,21 +99,17 @@ print(f"Sukses! Artikel ramah SEO berhasil disimpan di: {nama_file}")
 DOMAIN_UTAMA = "https://github.io"
 SITEMAP_PATH = "sitemap.xml"
 
-# Struktur dasar sitemap XML
 urlset = ET.Element("urlset", xmlns="http://sitemaps.org")
 
-# Masukkan Halaman Utama (Beranda)
 url_home = ET.SubElement(urlset, "url")
 ET.SubElement(url_home, "loc").text = f"{DOMAIN_UTAMA}/"
 ET.SubElement(url_home, "lastmod").text = datetime.date.today().isoformat()
 ET.SubElement(url_home, "changefreq").text = "daily"
 ET.SubElement(url_home, "priority").text = "1.0"
 
-# Deteksi otomatis semua artikel .md yang sudah ada di folder posts/
 if os.path.exists("posts"):
     for file in os.listdir("posts"):
         if file.endswith(".md"):
-            # Menyesuaikan dengan sistem routing Hash (#article/nama-file) pada blog Anda
             clean_slug = file.replace(".md", "")
             url_article_path = f"{DOMAIN_UTAMA}/#article/{clean_slug}"
             
@@ -108,11 +119,9 @@ if os.path.exists("posts"):
             ET.SubElement(url_node, "changefreq").text = "weekly"
             ET.SubElement(url_node, "priority").text = "0.8"
 
-# Format agar kode XML rapi (pretty print)
 xml_string = ET.tostring(urlset, encoding="utf-8")
 xml_pretty = minidom.parseString(xml_string).toprettyxml(indent="  ")
 
-# Simpan/Overwrite file sitemap.xml di root folder repositori
 with open(SITEMAP_PATH, "w", encoding="utf-8") as f:
     f.write(xml_pretty)
 
