@@ -3,7 +3,7 @@ name: Agen AI Penulis Artikel (2x Sehari)
 on:
   schedule:
     # Berjalan otomatis 2x sehari: Jam 07:00 WIB (00:00 UTC) dan Jam 19:00 WIB (12:00 UTC)
-    - cron: '0 0,12 * * *' 
+    - cron: '37 0,12 * * *' 
   workflow_dispatch: # Tombol rahasia agar Anda bisa tes jalankan manual kapan saja
 
 # Memberikan izin penuh kepada robot GitHub untuk menulis file ke dalam repositori
