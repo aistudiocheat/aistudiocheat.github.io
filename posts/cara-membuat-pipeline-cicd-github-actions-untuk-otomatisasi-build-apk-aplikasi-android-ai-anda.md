@@ -9,7 +9,7 @@ Integrasi Artificial Intelligence (AI) seperti Gemini API dari Google AI Studio 
 
 Di sinilah **CI/CD (Continuous Integration/Continuous Delivery)** berperan. Dengan menggunakan **GitHub Actions**, Anda dapat mengotomatiskan proses pengujian, pembuatan (*build*), penandatanganan (*signing*), hingga distribusi APK versi produksi setiap kali Anda melakukan *push* kode ke repositori.
 
-Artikel ini akan memandu Anda secara mendalam tentang cara menyusun pipeline CI/CD GitHub Actions yang aman untuk aplikasi Android AI Anda.
+Artikel ini akan memandu Anda secara mendalam tentang cara menyusun pipeline CI/CD GitHub Actions yang aman untuk aplikasi Android AI Anda..
 
 ---
 
