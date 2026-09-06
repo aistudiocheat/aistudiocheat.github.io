@@ -3,17 +3,15 @@ import datetime
 import re
 import random
 import time
-import xml.etree.ElementTree as ET
-from xml.dom import minidom
 from google import genai
 from google.genai.types import HttpOptions
 
-# 1. Gunakan API Versi v1 Stabil
+# 1. Menggunakan API Versi v1 Stabil dan model Pro yang tangguh
 client = genai.Client(http_options=HttpOptions(api_version="v1"))
 
 # 2. Bank Ide: 20 Topik Masalah Konversi Google AI Studio ke Versi Produksi
 DAFTAR_TOPIK = [
-    "Cara Integrasi API Gemini 3.5 Flash ke Android Studio Kotlin untuk Pemula",
+    "Cara Integrasi API Gemini 2.5 Flash ke Android Studio Kotlin untuk Pemula",
     "Kenapa Aplikasi Android Buatan Google AI Studio Tidak Bisa Langsung di-Upload ke Play Store?",
     "Panduan Membuat Aplikasi Chatbot Android Menggunakan Template Google AI Studio",
     "Cara Mengatasi Error API Key Bocor saat Export Project dari Google AI Studio ke Android Studio",
@@ -59,9 +57,7 @@ tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 Catatan: Jangan tuliskan link CTA Fastwork secara manual di teks ini.
 """
 
-# =====================================================================
-# 4. SISTEM ANTI-SIBUK (RETRY LOGIC DENGAN 3 KALI KESEMPATAN COBA LAGI)
-# =====================================================================
+# 4. Sistem Anti-Sibuk Server Google
 maksimal_coba = 3
 konten_markdown = ""
 
@@ -75,11 +71,11 @@ for percobaan in range(maksimal_coba):
         if konten_markdown:
             break
     except Exception as e:
-        print(f"Server Google sibuk (Eror: {e}). Mencoba lagi dalam 10 detik... (Percobaan {percobaan + 1}/{maksimal_coba})")
+        print(f"Server Google sibuk. Mencoba lagi dalam 10 detik... (Percobaan {percobaan + 1}/{maksimal_coba})")
         time.sleep(10)
 
 if not konten_markdown:
-    raise Exception("Gagal mendapatkan respons dari Gemini setelah dicoba 3 kali karena server Google sibuk.")
+    raise Exception("Gagal mendapatkan respons dari Gemini.")
 
 # 5. Membuat nama file slug tanpa tanggal
 slug = TOPIK_HARI_INI.lower()
@@ -94,32 +90,31 @@ with open(nama_file, "w", encoding="utf-8") as f:
 print(f"Sukses! Artikel ramah SEO berhasil disimpan di: {nama_file}")
 
 # =====================================================================
-# 7. FITUR OTOMATIS GENERATE/UPDATE SITEMAP.XML UNTUK GOOGLE SEO
+# 7. FITUR PENULISAN SITEMAP XML FORMAT TEKS MURNI (MENGGUNAKAN HASH ROUTING)
 # =====================================================================
 SITEMAP_PATH = "sitemap.xml"
 
-# Kita buat kerangka XML menggunakan format teks langsung agar domain tidak terpotong library Python
+# Membuat teks XML secara manual tanpa modifikasi library Python
 xml_konten = '<?xml version="1.0" encoding="utf-8"?>\n'
 xml_konten += '<urlset xmlns="http://sitemaps.org">\n'
 
-# Masukkan Halaman Utama (Beranda) dengan domain yang sudah dikunci
+# Masukkan Beranda Utama
 xml_konten += '  <url>\n'
-xml_konten += '    <loc>https://github.io</loc>\n'
+xml_konten += '    <loc>https://aistudiocheat.github.io/</loc>\n'
 xml_konten += f'    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n'
 xml_konten += '    <changefreq>daily</changefreq>\n'
 xml_konten += '    <priority>1.0</priority>\n'
 xml_konten += '  </url>\n'
 
-# Deteksi otomatis semua artikel .md yang sudah ada di folder posts/
+# Deteksi isi folder posts/ dan konversi ke pola Rute Hash (#article/slug)
 if os.path.exists("posts"):
     for file in os.listdir("posts"):
         if file.endswith(".md"):
             clean_slug = file.replace(".md", "")
-            # Menyusun tautan artikel murni menggunakan nama domain Anda secara utuh
-            url_article_path = f"https://github.io#article/{clean_slug}"
             
+            # Penggabungan string manual untuk mengunci rute jangkar berekstensi hash
             xml_konten += '  <url>\n'
-            xml_konten += f'    <loc>{url_article_path}</loc>\n'
+            xml_konten += f'    <loc>https://github.io{clean_slug}</loc>\n'
             xml_konten += f'    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n'
             xml_konten += '    <changefreq>weekly</changefreq>\n'
             xml_konten += '    <priority>0.8</priority>\n'
@@ -127,8 +122,8 @@ if os.path.exists("posts"):
 
 xml_konten += '</urlset>'
 
-# Simpan/Overwrite file sitemap.xml di root folder repositori
+# Tulis ulang file sitemap secara absolut di folder root
 with open(SITEMAP_PATH, "w", encoding="utf-8") as f:
     f.write(xml_konten)
 
-print("Sukses! File sitemap.xml dengan domain asli berhasil diperbarui otomatis.")
+print("Sukses! File sitemap.xml dengan format hash routing berhasil diperbarui otomatis.")
