@@ -11,7 +11,7 @@ client = genai.Client(http_options=HttpOptions(api_version="v1"))
 
 # 2. Bank Ide: 20 Topik Masalah Konversi Google AI Studio ke Versi Produksi
 DAFTAR_TOPIK = [
-    "Cara Integrasi API Gemini 2.5 Flash ke Android Studio Kotlin untuk Pemula",
+    "Cara Integrasi API Gemini ke Android Studio Kotlin untuk Pemula",
     "Kenapa Aplikasi Android Buatan Google AI Studio Tidak Bisa Langsung di-Upload ke Play Store?",
     "Panduan Membuat Aplikasi Chatbot Android Menggunakan Template Google AI Studio",
     "Cara Mengatasi Error API Key Bocor saat Export Project dari Google AI Studio ke Android Studio",
@@ -78,9 +78,9 @@ if not konten_markdown:
     raise Exception("Gagal mendapatkan respons dari Gemini.")
 
 # 5. Membuat nama file slug tanpa tanggal
-slug = TOPIK_HARI_INI.lower()
-slug = re.sub(r'[^a-z0-9\s-]', '', slug)
-slug = re.sub(r'[\s-]+', '-', slug).strip('-')
+slug_raw = TOPIK_HARI_INI.lower()
+slug_clean = re.sub(r'[^a-z0-9\s-]', '', slug_raw)
+slug = re.sub(r'[\s-]+', '-', slug_clean).strip('-')
 nama_file = f"posts/{slug}.md"
 
 # 6. Simpan file markdown artikel
@@ -90,40 +90,32 @@ with open(nama_file, "w", encoding="utf-8") as f:
 print(f"Sukses! Artikel ramah SEO berhasil disimpan di: {nama_file}")
 
 # =====================================================================
-# 7. FITUR PENULISAN SITEMAP XML FORMAT TEKS MURNI (MENGGUNAKAN HASH ROUTING)
+# 7. FITUR SITEMAP XML (KUNCI TOTAL DOMAIN ASLI KAMU TANPA BAGI VARIABEL)
 # =====================================================================
 SITEMAP_PATH = "sitemap.xml"
 
-# Membuat teks XML secara manual tanpa modifikasi library Python
-xml_konten = '<?xml version="1.0" encoding="utf-8"?>\n'
-xml_konten += '<urlset xmlns="http://sitemaps.org">\n'
+# Menggunakan cetakan teks murni yang mengunci domain milikmu secara permanen
+xml_header = '<?xml version="1.0" encoding="utf-8"?>\n<urlset xmlns="http://sitemaps.org">\n'
+xml_beranda = f'  <url>\n    <loc>https://aistudiocheat.github.io/</loc>\n    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
 
-# Masukkan Beranda Utama
-xml_konten += '  <url>\n'
-xml_konten += '    <loc>https://aistudiocheat.github.io/</loc>\n'
-xml_konten += f'    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n'
-xml_konten += '    <changefreq>daily</changefreq>\n'
-xml_konten += '    <priority>1.0</priority>\n'
-xml_konten += '  </url>\n'
-
-# Deteksi isi folder posts/ dan konversi ke pola Rute Hash (#article/slug)
+xml_item_artikel = ""
 if os.path.exists("posts"):
-    for file in os.listdir("posts"):
-        if file.endswith(".md"):
-            clean_slug = file.replace(".md", "")
+    for file_name in os.listdir("posts"):
+        if file_name.endswith(".md"):
+            clean_slug_artikel = file_name.replace(".md", "")
             
-            # Penggabungan string manual untuk mengunci rute jangkar berekstensi hash
-            xml_konten += '  <url>\n'
-            xml_konten += f'    <loc>https://github.io{clean_slug}</loc>\n'
-            xml_konten += f'    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n'
-            xml_konten += '    <changefreq>weekly</changefreq>\n'
-            xml_konten += '    <priority>0.8</priority>\n'
-            xml_konten += '  </url>\n'
+            # Membentuk string URL secara utuh dan saklek ke domain aistudiocheat
+            xml_item_artikel += '  <url>\n'
+            xml_item_artikel += f'    <loc>https://github.io{clean_slug_artikel}</loc>\n'
+            xml_item_artikel += f'    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n'
+            xml_item_artikel += '    <changefreq>weekly</changefreq>\n'
+            xml_item_artikel += '    <priority>0.8</priority>\n'
+            xml_item_artikel += '  </url>\n'
 
-xml_konten += '</urlset>'
+xml_final = xml_header + xml_beranda + xml_item_artikel + '</urlset>'
 
-# Tulis ulang file sitemap secara absolut di folder root
+# Simpan perubahan final sitemap ke root folder
 with open(SITEMAP_PATH, "w", encoding="utf-8") as f:
-    f.write(xml_konten)
+    f.write(xml_final)
 
-print("Sukses! File sitemap.xml dengan format hash routing berhasil diperbarui otomatis.")
+print("Sukses! File sitemap.xml dengan domain asli aistudiocheat berhasil diperbarui otomatis.")
