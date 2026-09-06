@@ -96,33 +96,39 @@ print(f"Sukses! Artikel ramah SEO berhasil disimpan di: {nama_file}")
 # =====================================================================
 # 7. FITUR OTOMATIS GENERATE/UPDATE SITEMAP.XML UNTUK GOOGLE SEO
 # =====================================================================
-DOMAIN_UTAMA = "https://github.io"
 SITEMAP_PATH = "sitemap.xml"
 
-urlset = ET.Element("urlset", xmlns="http://sitemaps.org")
+# Kita buat kerangka XML menggunakan format teks langsung agar domain tidak terpotong library Python
+xml_konten = '<?xml version="1.0" encoding="utf-8"?>\n'
+xml_konten += '<urlset xmlns="http://sitemaps.org">\n'
 
-url_home = ET.SubElement(urlset, "url")
-ET.SubElement(url_home, "loc").text = f"{DOMAIN_UTAMA}/"
-ET.SubElement(url_home, "lastmod").text = datetime.date.today().isoformat()
-ET.SubElement(url_home, "changefreq").text = "daily"
-ET.SubElement(url_home, "priority").text = "1.0"
+# Masukkan Halaman Utama (Beranda) dengan domain yang sudah dikunci
+xml_konten += '  <url>\n'
+xml_konten += '    <loc>https://github.io</loc>\n'
+xml_konten += f'    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n'
+xml_konten += '    <changefreq>daily</changefreq>\n'
+xml_konten += '    <priority>1.0</priority>\n'
+xml_konten += '  </url>\n'
 
+# Deteksi otomatis semua artikel .md yang sudah ada di folder posts/
 if os.path.exists("posts"):
     for file in os.listdir("posts"):
         if file.endswith(".md"):
             clean_slug = file.replace(".md", "")
-            url_article_path = f"{DOMAIN_UTAMA}/#article/{clean_slug}"
+            # Menyusun tautan artikel murni menggunakan nama domain Anda secara utuh
+            url_article_path = f"https://github.io#article/{clean_slug}"
             
-            url_node = ET.SubElement(urlset, "url")
-            ET.SubElement(url_node, "loc").text = url_article_path
-            ET.SubElement(url_node, "lastmod").text = datetime.date.today().isoformat()
-            ET.SubElement(url_node, "changefreq").text = "weekly"
-            ET.SubElement(url_node, "priority").text = "0.8"
+            xml_konten += '  <url>\n'
+            xml_konten += f'    <loc>{url_article_path}</loc>\n'
+            xml_konten += f'    <lastmod>{datetime.date.today().isoformat()}</lastmod>\n'
+            xml_konten += '    <changefreq>weekly</changefreq>\n'
+            xml_konten += '    <priority>0.8</priority>\n'
+            xml_konten += '  </url>\n'
 
-xml_string = ET.tostring(urlset, encoding="utf-8")
-xml_pretty = minidom.parseString(xml_string).toprettyxml(indent="  ")
+xml_konten += '</urlset>'
 
+# Simpan/Overwrite file sitemap.xml di root folder repositori
 with open(SITEMAP_PATH, "w", encoding="utf-8") as f:
-    f.write(xml_pretty)
+    f.write(xml_konten)
 
-print("Sukses! File sitemap.xml berhasil diperbarui otomatis.")
+print("Sukses! File sitemap.xml dengan domain asli berhasil diperbarui otomatis.")
