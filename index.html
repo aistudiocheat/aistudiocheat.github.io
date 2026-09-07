@@ -100,28 +100,32 @@
     .glass-card:hover {
       border-color: rgba(59, 130, 246, 0.4);
       box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
-      transform: translateY(-2px);
     }
 
     /* Markdown Rendering Styling */
     .markdown-content {
       color: #cbd5e1;
       font-size: 1.0625rem;
-      line-height: 1.8;
+      line-height: 1.85;
+      word-break: break-word;
     }
     .markdown-content h1 { font-size: 2.25rem; font-weight: 800; color: #f8fafc; margin-top: 2rem; margin-bottom: 1.25rem; line-height: 1.25; }
     .markdown-content h2 { font-size: 1.65rem; font-weight: 700; color: #f1f5f9; margin-top: 2.25rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.5rem; }
     .markdown-content h3 { font-size: 1.3rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+    .markdown-content h4 { font-size: 1.1rem; font-weight: 600; color: #cbd5e1; margin-top: 1.25rem; margin-bottom: 0.5rem; }
     .markdown-content p { margin-bottom: 1.25rem; }
     .markdown-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; }
     .markdown-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; }
     .markdown-content li { margin-bottom: 0.4rem; }
     .markdown-content blockquote { border-left: 4px solid #3b82f6; padding: 0.75rem 1.25rem; margin: 1.5rem 0; color: #94a3b8; font-style: italic; background: rgba(59, 130, 246, 0.05); border-radius: 0 0.5rem 0.5rem 0; }
     .markdown-content code:not(pre code) { background: #1e293b; color: #60a5fa; padding: 0.2rem 0.45rem; border-radius: 0.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875em; }
-    .markdown-content pre { margin: 1.5rem 0; border-radius: 0.75rem; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); background-color: #0b0f17 !important; position: relative; }
+    .markdown-content pre { margin: 1.5rem 0; border-radius: 0.75rem; overflow-x: auto; border: 1px solid rgba(255, 255, 255, 0.1); background-color: #0b0f17 !important; position: relative; }
     .markdown-content img { border-radius: 0.75rem; max-width: 100%; height: auto; margin: 1.5rem 0; border: 1px solid rgba(255, 255, 255, 0.1); }
     .markdown-content a { color: #60a5fa; text-decoration: underline; text-underline-offset: 4px; }
     .markdown-content a:hover { color: #93c5fd; }
+    .markdown-content table { width: 100%; margin-bottom: 1.5rem; border-collapse: collapse; overflow-x: auto; display: block; }
+    .markdown-content th, .markdown-content td { padding: 0.75rem 1rem; border: 1px solid rgba(255, 255, 255, 0.1); text-align: left; }
+    .markdown-content th { background-color: rgba(30, 41, 59, 0.5); font-weight: 600; color: #f8fafc; }
 
     /* Code Block Copy Container */
     .code-wrapper { position: relative; }
@@ -172,7 +176,7 @@
 
       <!-- Quick Action CTA Link -->
       <div class="flex items-center space-x-3">
-        <a href="https://fastwork.id" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-neon-500 hover:bg-neon-600 text-white font-semibold text-xs font-mono transition-all shadow-md shadow-neon-glow flex items-center gap-2">
+        <a href="https://fastwork.id/user/aistudiocheat/ai-automation-23623063?utm_source=app_sharing" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-neon-500 hover:bg-neon-600 text-white font-semibold text-xs font-mono transition-all shadow-md shadow-neon-glow flex items-center gap-2">
           <i class="fa-solid fa-headset"></i>
           <span class="hidden sm:inline">Jasa DevOps Rp3,5Jt</span>
         </a>
@@ -308,7 +312,7 @@
                   <span class="text-[10px] font-mono text-slate-400 block uppercase">Investasi Infrastruktur</span>
                   <span class="text-2xl font-extrabold text-white font-mono text-neon-400">Rp 3.500.000</span>
                 </div>
-                <a href="https://fastwork.id" 
+                <a href="https://fastwork.id/user/aistudiocheat/ai-automation-23623063?utm_source=app_sharing" 
                    target="_blank" 
                    rel="noopener noreferrer" 
                    class="w-full sm:w-auto text-center px-6 py-3.5 rounded-xl bg-gradient-to-r from-neon-500 to-indigo-600 hover:from-neon-400 hover:to-indigo-500 text-white font-extrabold text-xs font-mono tracking-wide transition-all shadow-lg shadow-neon-glow hover:scale-105 flex items-center justify-center gap-2">
@@ -317,6 +321,21 @@
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- RELATED ARTICLES SECTION (MAX 10 ARTIKEL) -->
+        <div id="related-articles-section" class="mt-14 pt-8 border-t border-slate-800/80 space-y-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+              <i class="fa-solid fa-layer-group text-neon-400 text-lg"></i>
+              <span>Artikel Terkait Lainnya</span>
+            </h3>
+            <span class="text-xs font-mono text-slate-400 hidden sm:inline">Rekomendasi Bacaan Teknis</span>
+          </div>
+
+          <div id="related-articles-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Dynamic Related Articles Populated via JS -->
           </div>
         </div>
 
@@ -355,7 +374,8 @@
     const MOCK_FALLBACK_SLUGS = [
       'cara-mengatur-layout-devops',
       'panduan-integrasi-gemini-3-5-flash',
-      'otomatisasi-ci-cd-pipeline-github-actions'
+      'otomatisasi-ci-cd-pipeline-github-actions',
+      'panduan-kategori-artikel'
     ];
 
     // INITIALIZATION ON DOM READY
@@ -501,7 +521,7 @@
             author: "Senior Technical Specialist",
             tags: ["Infrastruktur", "Cloud"],
             summary: `Panduan praktis dan komprehensif mengenai ${slugToTitle(slug)}. Klik untuk membaca ulasan teknis lengkap.`,
-            content: `# ${slugToTitle(slug)}\n\nArtikel ini sedang disiapkan di folder \`posts/${slug}.md\`.\n\n### Ringkasan Teknis\nSilakan tambahkan naskah artikel Markdown Anda ke repositori GitHub Pages.`
+            content: `# ${slugToTitle(slug)}\n\nNaskah artikel sedang dimuat dari file \`posts/${slug}.md\`.\n\n### Ringkasan Teknis\nSilakan pastikan file Markdown Anda sudah ditempatkan di folder \`posts/\` repositori GitHub Pages Anda.`
           };
         })
       );
@@ -600,21 +620,35 @@
       }
     }
 
-    // LOAD SINGLE ARTICLE ON-THE-FLY
+    // LOAD SINGLE ARTICLE ON-THE-FLY WITH REAL-TIME FETCHING
     async function loadSingleArticle(slug) {
-      let article = articleStore.find(a => a.slug === slug);
+      let article = null;
 
-      if (!article) {
-        // Try fetching Markdown on-the-fly if not in store
-        try {
-          const res = await fetch(`posts/${slug}.md`);
-          if (res.ok) {
-            const text = await res.text();
-            article = parseFrontmatter(text, slug);
+      // Always attempt fresh fetch to ensure full markdown text is retrieved
+      try {
+        const res = await fetch(`posts/${slug}.md`);
+        if (res.ok) {
+          const text = await res.text();
+          article = parseFrontmatter(text, slug);
+          
+          // Update store entry
+          const existingIdx = articleStore.findIndex(a => a.slug === slug);
+          if (existingIdx !== -1) {
+            articleStore[existingIdx] = article;
+          } else {
+            articleStore.push(article);
           }
-        } catch (e) {}
+        }
+      } catch (e) {
+        console.warn('Real-time fetch gagal, mencari di local store...', e);
       }
 
+      // Fallback to store if direct fetch failed
+      if (!article) {
+        article = articleStore.find(a => a.slug === slug);
+      }
+
+      // Emergency fallback object
       if (!article) {
         article = {
           slug: slug,
@@ -623,7 +657,7 @@
           author: "Senior Technical Specialist",
           tags: ["DevOps", "Technical"],
           summary: `Dokumen teknis untuk ${slugToTitle(slug)}.`,
-          content: `# ${slugToTitle(slug)}\n\nNaskah artikel belum tersedia di folder \`posts/${slug}.md\`.`
+          content: `# ${slugToTitle(slug)}\n\nNaskah artikel belum tersedia di folder \`posts/${slug}.md\`.\n\nSilakan unggah file Markdown artikel Anda ke dalam folder \`posts/\` di repositori GitHub.`
         };
       }
 
@@ -664,8 +698,53 @@
         wrapper.appendChild(copyBtn);
       });
 
+      // Render Related Articles (Max 10)
+      renderRelatedArticles(slug);
+
       // Update Dynamic SEO for Page & Schema JSON-LD
       updateDynamicSEO(article);
+    }
+
+    // RENDER RELATED ARTICLES (UP TO 10 ARTICLES)
+    function renderRelatedArticles(currentSlug) {
+      const section = document.getElementById('related-articles-section');
+      const grid = document.getElementById('related-articles-grid');
+      
+      if (!grid) return;
+
+      // Filter out current active article
+      const relatedList = articleStore.filter(a => a.slug !== currentSlug).slice(0, 10);
+
+      if (relatedList.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+
+      section.classList.remove('hidden');
+
+      grid.innerHTML = relatedList.map(art => `
+        <div onclick="navigateToArticle('${art.slug}')" class="glass-card rounded-2xl p-5 flex flex-col justify-between cursor-pointer group border border-slate-800 hover:border-neon-500/50 transition-all">
+          <div>
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2">
+              <span class="text-neon-400"><i class="fa-regular fa-calendar mr-1"></i> ${art.date}</span>
+              <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-800 text-[10px] text-slate-300">${art.tags[0] || 'DevOps'}</span>
+            </div>
+
+            <h4 class="text-sm font-bold text-white group-hover:text-neon-400 transition-colors line-clamp-2 leading-snug mb-2">
+              ${art.title}
+            </h4>
+
+            <p class="text-slate-400 text-xs leading-relaxed line-clamp-2 mb-3">
+              ${art.summary}
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] font-mono text-neon-400 font-semibold">
+            <span>Baca Artikel</span>
+            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+      `).join('');
     }
 
     // DYNAMIC SEO & SCHEMA JSON-LD UPDATER
