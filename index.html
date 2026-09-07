@@ -199,7 +199,7 @@
           Catatan Arsitektur Cloud, AI & DevOps Systems
         </h1>
         <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
-          Eksplorasi tutorial teknis, infrastruktur CI/CD, otomatisasi Gemini API, dan riset performa tinggi yang disajikan langsung dari file Markdown lokal.
+          Eksplorasi tutorial teknis, infrastruktur CI/CD, otomatisasi Gemini API, dan riset performa tinggi yang disajikan langsung dari file Markdown lokal folder <code class="text-neon-400 font-mono">posts/</code>.
         </p>
       </div>
 
@@ -370,8 +370,9 @@
     // GLOBAL STATE & DATA STORAGE
     let articleStore = [];
 
-    // FALLBACK PRESET DATASET (If sitemap.xml is missing or running on initial preview)
+    // FALLBACK PRESET DATASET (Dipakai jika sitemap.xml belum dikonfigurasi)
     const MOCK_FALLBACK_SLUGS = [
+      'strategi-caching-menggunakan-datastore-untuk-menghemat-kuota-token-api-gemini-di-android',
       'cara-mengatur-layout-devops',
       'panduan-integrasi-gemini-3-5-flash',
       'otomatisasi-ci-cd-pipeline-github-actions',
@@ -389,7 +390,7 @@
         langPrefix: 'hljs language-'
       });
 
-      // Load Articles via Anti-Rate-Limit Sitemap Parser
+      // Load Articles via Anti-Rate-Limit Local Sitemap Parser
       loadArticlesFromSitemap();
 
       // Listen for Hash Navigation changes
@@ -399,11 +400,12 @@
       window.addEventListener('scroll', updateReadingProgressBar);
     });
 
-    // 1. HELPER: DYNAMIC TITLE RECONSTRUCTION FROM SLUG
+    // 1. HELPER: DYNAMIC TITLE RECONSTRUCTION FROM SLUG / FILENAME
     function slugToTitle(slug) {
       if (!slug) return 'Judul Artikel';
-      return slug
-        .replace(/-/g, ' ')
+      const cleanSlug = decodeURIComponent(slug).replace(/\.md$/i, '');
+      return cleanSlug
+        .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, letter => letter.toUpperCase());
     }
 
@@ -465,7 +467,33 @@
       };
     }
 
-    // 3. ANTI-RATE LIMIT LOCAL FETCH (SITEMAP.XML PARSER)
+    // 3. MULTI-ATTEMPT LOCAL FETCH FOR MARKDOWN FILES (Case-Insensitive Fallback)
+    async function fetchMarkdownContent(slug) {
+      const decodedSlug = decodeURIComponent(slug).replace(/\.md$/i, '');
+      
+      // Candidate paths to attempt fetching from local posts/ folder
+      const candidatePaths = [
+        `posts/${slug}.md`,
+        `posts/${decodedSlug}.md`,
+        `posts/${encodeURIComponent(decodedSlug)}.md`,
+        `posts/${decodedSlug.toLowerCase()}.md`
+      ];
+
+      for (const path of candidatePaths) {
+        try {
+          const res = await fetch(path);
+          if (res.ok) {
+            const text = await res.text();
+            return text;
+          }
+        } catch (e) {
+          // Continue to next candidate path
+        }
+      }
+      return null;
+    }
+
+    // 4. ANTI-RATE LIMIT LOCAL FETCH (SITEMAP.XML PARSER)
     async function loadArticlesFromSitemap() {
       let detectedSlugs = [];
 
@@ -486,7 +514,7 @@
               if (slug && !detectedSlugs.includes(slug)) detectedSlugs.push(slug);
             } else if (url.includes('/posts/')) {
               const filename = url.split('/posts/')[1];
-              const slug = filename.replace(/\.md$/, '');
+              const slug = filename.replace(/\.md$/i, '');
               if (slug && !detectedSlugs.includes(slug)) detectedSlugs.push(slug);
             }
           }
@@ -500,17 +528,12 @@
         detectedSlugs = MOCK_FALLBACK_SLUGS;
       }
 
-      // Fetch each detected Markdown file directly
+      // Fetch each detected Markdown file directly from posts/ folder
       articleStore = await Promise.all(
         detectedSlugs.map(async (slug) => {
-          try {
-            const res = await fetch(`posts/${slug}.md`);
-            if (res.ok) {
-              const text = await res.text();
-              return parseFrontmatter(text, slug);
-            }
-          } catch (e) {
-            // Ignore fetch error
+          const rawText = await fetchMarkdownContent(slug);
+          if (rawText) {
+            return parseFrontmatter(rawText, slug);
           }
 
           // Fallback object if physical file is not found yet
@@ -521,7 +544,7 @@
             author: "Senior Technical Specialist",
             tags: ["Infrastruktur", "Cloud"],
             summary: `Panduan praktis dan komprehensif mengenai ${slugToTitle(slug)}. Klik untuk membaca ulasan teknis lengkap.`,
-            content: `# ${slugToTitle(slug)}\n\nNaskah artikel sedang dimuat dari file \`posts/${slug}.md\`.\n\n### Ringkasan Teknis\nSilakan pastikan file Markdown Anda sudah ditempatkan di folder \`posts/\` repositori GitHub Pages Anda.`
+            content: `# ${slugToTitle(slug)}\n\nNaskah artikel sedang dimuat dari file \`posts/${slug}.md\`.\n\n### Ringkasan Teknis\nSilakan pastikan file Markdown Anda telah disimpan di folder \`posts/\` repositori GitHub Anda.`
           };
         })
       );
@@ -620,30 +643,25 @@
       }
     }
 
-    // LOAD SINGLE ARTICLE ON-THE-FLY WITH REAL-TIME FETCHING
+    // LOAD SINGLE ARTICLE ON-THE-FLY WITH REAL-TIME LOCAL FETCHING
     async function loadSingleArticle(slug) {
       let article = null;
 
-      // Always attempt fresh fetch to ensure full markdown text is retrieved
-      try {
-        const res = await fetch(`posts/${slug}.md`);
-        if (res.ok) {
-          const text = await res.text();
-          article = parseFrontmatter(text, slug);
-          
-          // Update store entry
-          const existingIdx = articleStore.findIndex(a => a.slug === slug);
-          if (existingIdx !== -1) {
-            articleStore[existingIdx] = article;
-          } else {
-            articleStore.push(article);
-          }
+      // Direct fetch from local posts/ folder
+      const rawText = await fetchMarkdownContent(slug);
+      if (rawText) {
+        article = parseFrontmatter(rawText, slug);
+        
+        // Update local memory store
+        const existingIdx = articleStore.findIndex(a => a.slug === slug);
+        if (existingIdx !== -1) {
+          articleStore[existingIdx] = article;
+        } else {
+          articleStore.push(article);
         }
-      } catch (e) {
-        console.warn('Real-time fetch gagal, mencari di local store...', e);
       }
 
-      // Fallback to store if direct fetch failed
+      // Fallback to memory store if fetch returned null
       if (!article) {
         article = articleStore.find(a => a.slug === slug);
       }
@@ -657,7 +675,7 @@
           author: "Senior Technical Specialist",
           tags: ["DevOps", "Technical"],
           summary: `Dokumen teknis untuk ${slugToTitle(slug)}.`,
-          content: `# ${slugToTitle(slug)}\n\nNaskah artikel belum tersedia di folder \`posts/${slug}.md\`.\n\nSilakan unggah file Markdown artikel Anda ke dalam folder \`posts/\` di repositori GitHub.`
+          content: `# ${slugToTitle(slug)}\n\nNaskah artikel belum dapat dibaca dari folder \`posts/${slug}.md\`.\n\nPastikan nama file di folder \`posts/\` sesuai dengan tautan.`
         };
       }
 
