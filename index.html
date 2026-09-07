@@ -193,13 +193,13 @@
       <div class="text-center max-w-3xl mx-auto pt-4 pb-2">
         <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-neon-500/10 border border-neon-500/20 text-neon-400 text-xs font-mono mb-4 shadow-sm">
           <span class="w-2 h-2 rounded-full bg-neon-400 animate-pulse"></span>
-          <span>Sitemap-Driven Anti Rate-Limit Engine</span>
+          <span>Sitemap-Driven Local Storage Engine</span>
         </div>
         <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
           Catatan Arsitektur Cloud, AI & DevOps Systems
         </h1>
         <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
-          Eksplorasi tutorial teknis, infrastruktur CI/CD, otomatisasi Gemini API, dan riset performa tinggi yang disajikan langsung dari file Markdown lokal folder <code class="text-neon-400 font-mono">posts/</code>.
+          Eksplorasi tutorial teknis, infrastruktur CI/CD, otomatisasi Gemini API, dan riset performa tinggi yang disajikan langsung dari folder <code class="text-neon-400 font-mono">posts</code>.
         </p>
       </div>
 
@@ -390,7 +390,7 @@
         langPrefix: 'hljs language-'
       });
 
-      // Load Articles via Anti-Rate-Limit Local Sitemap Parser
+      // Load Articles via Sitemap Parser
       loadArticlesFromSitemap();
 
       // Listen for Hash Navigation changes
@@ -467,16 +467,16 @@
       };
     }
 
-    // 3. MULTI-ATTEMPT LOCAL FETCH FOR MARKDOWN FILES (Case-Insensitive Fallback)
+    // 3. MULTI-ATTEMPT LOCAL FETCH FOR MARKDOWN FILES FROM 'posts' FOLDER
     async function fetchMarkdownContent(slug) {
-      const decodedSlug = decodeURIComponent(slug).replace(/\.md$/i, '');
+      const cleanSlug = decodeURIComponent(slug).replace(/\.md$/i, '');
       
-      // Candidate paths to attempt fetching from local posts/ folder
+      // Candidate paths directly targeting 'posts' folder (WITHOUT TRAILING SLASHES)
       const candidatePaths = [
-        `posts/${slug}.md`,
-        `posts/${decodedSlug}.md`,
-        `posts/${encodeURIComponent(decodedSlug)}.md`,
-        `posts/${decodedSlug.toLowerCase()}.md`
+        `posts/${cleanSlug}.md`,
+        `posts/${encodeURIComponent(cleanSlug)}.md`,
+        `posts/${cleanSlug.toLowerCase()}.md`,
+        `posts/${cleanSlug}`
       ];
 
       for (const path of candidatePaths) {
@@ -484,7 +484,9 @@
           const res = await fetch(path);
           if (res.ok) {
             const text = await res.text();
-            return text;
+            if (text && text.trim().length > 0) {
+              return text;
+            }
           }
         } catch (e) {
           // Continue to next candidate path
@@ -493,7 +495,7 @@
       return null;
     }
 
-    // 4. ANTI-RATE LIMIT LOCAL FETCH (SITEMAP.XML PARSER)
+    // 4. LOCAL SITEMAP.XML PARSER
     async function loadArticlesFromSitemap() {
       let detectedSlugs = [];
 
@@ -510,10 +512,10 @@
             
             // Extract slug from Hash routing URLs or direct file paths
             if (url.includes('#article/')) {
-              const slug = url.split('#article/')[1];
+              const slug = url.split('#article/')[1].replace(/\/$/, '');
               if (slug && !detectedSlugs.includes(slug)) detectedSlugs.push(slug);
             } else if (url.includes('/posts/')) {
-              const filename = url.split('/posts/')[1];
+              const filename = url.split('/posts/')[1].replace(/\/$/, '');
               const slug = filename.replace(/\.md$/i, '');
               if (slug && !detectedSlugs.includes(slug)) detectedSlugs.push(slug);
             }
@@ -528,7 +530,7 @@
         detectedSlugs = MOCK_FALLBACK_SLUGS;
       }
 
-      // Fetch each detected Markdown file directly from posts/ folder
+      // Fetch each detected Markdown file directly from posts folder
       articleStore = await Promise.all(
         detectedSlugs.map(async (slug) => {
           const rawText = await fetchMarkdownContent(slug);
@@ -544,7 +546,7 @@
             author: "Senior Technical Specialist",
             tags: ["Infrastruktur", "Cloud"],
             summary: `Panduan praktis dan komprehensif mengenai ${slugToTitle(slug)}. Klik untuk membaca ulasan teknis lengkap.`,
-            content: `# ${slugToTitle(slug)}\n\nNaskah artikel sedang dimuat dari file \`posts/${slug}.md\`.\n\n### Ringkasan Teknis\nSilakan pastikan file Markdown Anda telah disimpan di folder \`posts/\` repositori GitHub Anda.`
+            content: `# ${slugToTitle(slug)}\n\nNaskah artikel sedang dimuat dari folder \`posts/${slug}.md\`.\n\n### Ringkasan Teknis\nSilakan pastikan file Markdown Anda telah disimpan di folder \`posts\` repositori GitHub Anda.`
           };
         })
       );
@@ -629,7 +631,7 @@
       const articleView = document.getElementById('view-article');
 
       if (hash.startsWith('#article/')) {
-        const slug = hash.replace('#article/', '');
+        const slug = hash.replace('#article/', '').replace(/\/$/, '');
         loadSingleArticle(slug);
         catalogView.classList.add('hidden');
         articleView.classList.remove('hidden');
@@ -647,7 +649,7 @@
     async function loadSingleArticle(slug) {
       let article = null;
 
-      // Direct fetch from local posts/ folder
+      // Direct fetch from local posts folder
       const rawText = await fetchMarkdownContent(slug);
       if (rawText) {
         article = parseFrontmatter(rawText, slug);
@@ -675,7 +677,7 @@
           author: "Senior Technical Specialist",
           tags: ["DevOps", "Technical"],
           summary: `Dokumen teknis untuk ${slugToTitle(slug)}.`,
-          content: `# ${slugToTitle(slug)}\n\nNaskah artikel belum dapat dibaca dari folder \`posts/${slug}.md\`.\n\nPastikan nama file di folder \`posts/\` sesuai dengan tautan.`
+          content: `# ${slugToTitle(slug)}\n\nNaskah artikel belum dapat dibaca dari folder \`posts/${slug}.md\`.\n\nPastikan nama file di folder \`posts\` sesuai dengan tautan.`
         };
       }
 
