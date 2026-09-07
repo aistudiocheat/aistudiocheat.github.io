@@ -373,10 +373,10 @@
     // FALLBACK PRESET DATASET (Dipakai jika sitemap.xml belum dikonfigurasi)
     const MOCK_FALLBACK_SLUGS = [
       'strategi-caching-menggunakan-datastore-untuk-menghemat-kuota-token-api-gemini-di-android',
+      'mengenal-keystore-dan-sha-256-langkah-wajib-sebelum-merilis-aplikasi-android-ai-ke-publik',
       'cara-mengatur-layout-devops',
       'panduan-integrasi-gemini-3-5-flash',
-      'otomatisasi-ci-cd-pipeline-github-actions',
-      'panduan-kategori-artikel'
+      'otomatisasi-ci-cd-pipeline-github-actions'
     ];
 
     // INITIALIZATION ON DOM READY
@@ -400,7 +400,7 @@
       window.addEventListener('scroll', updateReadingProgressBar);
     });
 
-    // 1. HELPER: DYNAMIC TITLE RECONSTRUCTION FROM SLUG / FILENAME
+    // HELPER: DYNAMIC TITLE RECONSTRUCTION FROM SLUG / FILENAME
     function slugToTitle(slug) {
       if (!slug) return 'Judul Artikel';
       const cleanSlug = decodeURIComponent(slug).replace(/\.md$/i, '');
@@ -409,12 +409,30 @@
         .replace(/\b\w/g, letter => letter.toUpperCase());
     }
 
-    // 2. FRONTMATTER PARSER
-    function parseFrontmatter(markdownText, slug) {
-      const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
-      const match = markdownText.match(frontmatterRegex);
+    // SANITIZE & UNWRAP RAW MARKDOWN CONTENT
+    function cleanRawMarkdownText(rawText) {
+      if (!rawText) return '';
+      let text = rawText.replace(/^\uFEFF/, '').trim(); // Strip BOM
 
+      // Remove unwanted outer code block backticks if the ENTIRE file was wrapped in ```
+      if (text.startsWith('```')) {
+        text = text.replace(/^```[a-zA-Z]*\r?\n/, '').replace(/\r?\n```$/, '').trim();
+      }
+
+      // Remove raw HTML head/meta snippets that might be at the top of exported markdown
+      text = text.replace(/^<link\s+rel=["']stylesheet["'][\s\S]*?>/i, '');
+      text = text.replace(/^<!--[\s\S]*?-->/g, '');
+
+      return text.trim();
+    }
+
+    // SMART FRONTMATTER PARSER
+    function parseFrontmatter(markdownText, slug) {
+      const cleanText = cleanRawMarkdownText(markdownText);
       const reconstructedTitle = slugToTitle(slug);
+
+      const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
+      const match = cleanText.match(frontmatterRegex);
 
       if (!match) {
         // Fallback if no Frontmatter present
@@ -424,15 +442,20 @@
           date: new Date().toISOString().split('T')[0],
           author: "Senior Technical Specialist",
           tags: ["DevOps", "Tutorial"],
-          summary: markdownText.replace(/^#.*$/gm, '').trim().slice(0, 160) + '...',
-          content: markdownText
+          summary: cleanText.replace(/^#.*$/gm, '').replace(/<[^>]*>/g, '').trim().slice(0, 160) + '...',
+          content: cleanText
         };
       }
 
       const yamlBlock = match[1];
-      const bodyContent = match[2];
-      const metadata = {};
+      let bodyContent = match[2].trim();
 
+      // Unwrap body if it has outer code fences inside frontmatter
+      if (bodyContent.startsWith('```')) {
+        bodyContent = bodyContent.replace(/^```[a-zA-Z]*\r?\n/, '').replace(/\r?\n```$/, '').trim();
+      }
+
+      const metadata = {};
       yamlBlock.split('\n').forEach(line => {
         const colonIndex = line.indexOf(':');
         if (colonIndex !== -1) {
@@ -462,16 +485,15 @@
         date: metadata.date || new Date().toISOString().split('T')[0],
         author: metadata.author || "Senior Technical Specialist",
         tags: Array.isArray(metadata.tags) ? metadata.tags : (metadata.tags ? [metadata.tags] : ["DevOps"]),
-        summary: metadata.summary || bodyContent.replace(/^#.*$/gm, '').trim().slice(0, 160) + '...',
+        summary: metadata.summary || bodyContent.replace(/^#.*$/gm, '').replace(/<[^>]*>/g, '').trim().slice(0, 160) + '...',
         content: bodyContent
       };
     }
 
-    // 3. MULTI-ATTEMPT LOCAL FETCH FOR MARKDOWN FILES FROM 'posts' FOLDER
+    // MULTI-ATTEMPT LOCAL FETCH FOR MARKDOWN FILES FROM 'posts' FOLDER
     async function fetchMarkdownContent(slug) {
       const cleanSlug = decodeURIComponent(slug).replace(/\.md$/i, '');
       
-      // Candidate paths directly targeting 'posts' folder (WITHOUT TRAILING SLASHES)
       const candidatePaths = [
         `posts/${cleanSlug}.md`,
         `posts/${encodeURIComponent(cleanSlug)}.md`,
@@ -495,7 +517,7 @@
       return null;
     }
 
-    // 4. LOCAL SITEMAP.XML PARSER
+    // LOCAL SITEMAP.XML PARSER
     async function loadArticlesFromSitemap() {
       let detectedSlugs = [];
 
@@ -510,7 +532,6 @@
           for (let i = 0; i < locElements.length; i++) {
             const url = locElements[i].textContent.trim();
             
-            // Extract slug from Hash routing URLs or direct file paths
             if (url.includes('#article/')) {
               const slug = url.split('#article/')[1].replace(/\/$/, '');
               if (slug && !detectedSlugs.includes(slug)) detectedSlugs.push(slug);
@@ -525,12 +546,10 @@
         console.warn('sitemap.xml tidak ditemukan, beralih ke fallback dataset.');
       }
 
-      // Use fallback if sitemap is empty or failed
       if (detectedSlugs.length === 0) {
         detectedSlugs = MOCK_FALLBACK_SLUGS;
       }
 
-      // Fetch each detected Markdown file directly from posts folder
       articleStore = await Promise.all(
         detectedSlugs.map(async (slug) => {
           const rawText = await fetchMarkdownContent(slug);
@@ -538,7 +557,6 @@
             return parseFrontmatter(rawText, slug);
           }
 
-          // Fallback object if physical file is not found yet
           return {
             slug: slug,
             title: slugToTitle(slug),
@@ -649,12 +667,10 @@
     async function loadSingleArticle(slug) {
       let article = null;
 
-      // Direct fetch from local posts folder
       const rawText = await fetchMarkdownContent(slug);
       if (rawText) {
         article = parseFrontmatter(rawText, slug);
         
-        // Update local memory store
         const existingIdx = articleStore.findIndex(a => a.slug === slug);
         if (existingIdx !== -1) {
           articleStore[existingIdx] = article;
@@ -663,12 +679,10 @@
         }
       }
 
-      // Fallback to memory store if fetch returned null
       if (!article) {
         article = articleStore.find(a => a.slug === slug);
       }
 
-      // Emergency fallback object
       if (!article) {
         article = {
           slug: slug,
@@ -681,7 +695,6 @@
         };
       }
 
-      // Render Headings & Meta
       document.getElementById('article-title').innerText = article.title;
       document.getElementById('article-date').innerText = article.date;
       document.getElementById('article-author').innerText = article.author;
@@ -699,29 +712,28 @@
       const articleBody = document.getElementById('article-body');
       articleBody.innerHTML = rawHtml;
 
-      // Add Copy Buttons to generated Code Blocks
-      articleBody.querySelectorAll('pre').forEach((pre) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'code-wrapper';
-        pre.parentNode.insertBefore(wrapper, pre);
-        wrapper.appendChild(pre);
+      // Add Copy Buttons ONLY to legitimate code blocks
+      articleBody.querySelectorAll('pre code').forEach((codeBlock) => {
+        const pre = codeBlock.parentNode;
+        if (pre && pre.tagName.toLowerCase() === 'pre') {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'code-wrapper';
+          pre.parentNode.insertBefore(wrapper, pre);
+          wrapper.appendChild(pre);
 
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'btn-copy-code';
-        copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
-        copyBtn.onclick = () => {
-          const codeText = pre.querySelector('code').innerText;
-          navigator.clipboard.writeText(codeText);
-          copyBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Copied!';
-          setTimeout(() => { copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 2000);
-        };
-        wrapper.appendChild(copyBtn);
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'btn-copy-code';
+          copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+          copyBtn.onclick = () => {
+            navigator.clipboard.writeText(codeBlock.innerText);
+            copyBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Copied!';
+            setTimeout(() => { copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 2000);
+          };
+          wrapper.appendChild(copyBtn);
+        }
       });
 
-      // Render Related Articles (Max 10)
       renderRelatedArticles(slug);
-
-      // Update Dynamic SEO for Page & Schema JSON-LD
       updateDynamicSEO(article);
     }
 
@@ -732,7 +744,6 @@
       
       if (!grid) return;
 
-      // Filter out current active article
       const relatedList = articleStore.filter(a => a.slug !== currentSlug).slice(0, 10);
 
       if (relatedList.length === 0) {
@@ -772,11 +783,9 @@
       const fullUrl = window.location.href;
       document.title = `${art.title} — DevOps & AI Systems Log`;
 
-      // Meta Description
       let metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute('content', art.summary);
 
-      // OpenGraph
       let ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) ogTitle.setAttribute('content', art.title);
 
@@ -786,7 +795,9 @@
       let ogUrl = document.querySelector('meta[property="og:url"]');
       if (ogUrl) ogUrl.setAttribute('content', fullUrl);
 
-      // JSON-LD Dynamic Schema Injection
+      let canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute('href', fullUrl);
+
       let oldSchema = document.getElementById('json-ld-article');
       if (oldSchema) oldSchema.remove();
 
@@ -819,6 +830,9 @@
       let metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute('content', "Pusat catatan teknis, otomatisasi DevOps, arsitektur AI, dan platform engineering modern.");
       
+      let canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute('href', "https://aistudiocheat.github.io/");
+
       let oldSchema = document.getElementById('json-ld-article');
       if (oldSchema) oldSchema.remove();
     }
