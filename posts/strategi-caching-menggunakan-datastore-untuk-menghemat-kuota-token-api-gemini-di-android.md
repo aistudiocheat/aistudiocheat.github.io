@@ -1,104 +1,167 @@
 ---
 title: "Strategi Caching Menggunakan DataStore untuk Menghemat Kuota Token API Gemini di Android"
-date: "2026-09-06"
+date: "2026-09-08"
 excerpt: "Pelajari panduan praktis mengatasi kendala teknis saat mengembangkan, mengamankan, atau merilis aplikasi Android berbasis Google AI Studio."
 tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 ---
 
-Integrasi Large Language Model (LLM) seperti Gemini API ke dalam aplikasi Android membuka peluang tanpa batas untuk menciptakan fitur pintar. Namun, ada satu tantangan besar yang sering dihadapi oleh developer: **biaya token dan batasan *rate limit***. 
+Mengintegrasikan Large Language Model (LLM) seperti Google Gemini ke dalam aplikasi Android membuka peluang tanpa batas untuk menciptakan fitur yang cerdas. Namun, ada tantangan besar yang sering dihadapi oleh developer: **biaya dan kuota limitasi token (Rate Limits)**. 
 
-Setiap kali pengguna mengirimkan *prompt* yang sama, API Gemini akan memprosesnya ulang, mengonsumsi kuota token, dan memperlambat waktu respon (*latency*).
+Setiap request yang dikirim ke Gemini API memakan token, baik untuk input (prompt) maupun output (response). Jika pengguna menanyakan hal yang sama berulang kali, atau jika aplikasi Anda sering melakukan rekonstruksi UI yang memicu panggilan API ulang, kuota token Anda akan habis dalam sekejap.
 
-Untuk mengatasi masalah ini, kita memerlukan strategi caching lokal yang efisien. Di ekosistem Android modern, **Jetpack DataStore** (khususnya Preferences DataStore) adalah solusi ideal untuk menyimpan *cache* respon API berukuran kecil hingga menengah secara asinkron menggunakan Kotlin Coroutines dan Flow.
+Solusi paling efektif untuk masalah ini adalah dengan menerapkan **lokal caching**. Di ekosistem Android modern, **Jetpack DataStore** adalah solusi penyimpanan asinkronus terbaik berbasis Kotlin Coroutines dan Flow yang sangat cocok untuk skenario ini.
 
-Artikel ini akan memandu Anda secara mendalam tentang cara membangun sistem *caching* cerdas menggunakan Jetpack DataStore guna menghemat kuota token API Gemini di Android.
+Artikel ini akan membahas secara mendalam bagaimana mengimplementasikan strategi caching cerdas menggunakan DataStore untuk menghemat kuota token API Gemini di Android.
 
 ---
 
 ## Mengapa Memilih Jetpack DataStore untuk Caching?
 
-Sebelum masuk ke implementasi, penting untuk memahami mengapa DataStore lebih unggul dibanding pendahulunya (SharedPreferences) dan database berat (Room) untuk kasus ini:
-1. **Asinkron & Aman Thread:** DataStore berjalan sepenuhnya di background thread menggunakan Kotlin Coroutines, menghindari *Application Not Responding* (ANR).
-2. **Konsistensi Transaksional:** Menjamin keamanan data saat ditulis secara konkuren.
-3. **Ringan:** Sangat cocok untuk menyimpan data key-value seperti teks respon AI dan *timestamp* kedaluwarsa, tanpa overhead setup database SQL yang rumit.
+Sebelum masuk ke teknis, mari kita pahami mengapa DataStore lebih unggul dibandingkan SharedPreferences tradisional:
+1. **Asinkronus & Non-blocking:** DataStore menggunakan Kotlin Coroutines dan Flow, sehingga tidak akan memblokir *UI thread* yang dapat menyebabkan aplikasi *lag* (ANR).
+2. **Type Safety:** Melalui Proto DataStore, kita bisa mendefinisikan skema data yang aman. Namun, untuk caching sederhana, **Preferences DataStore** yang dikombinasikan dengan serialisasi JSON (seperti Gson atau Kotlinx Serialization) sudah sangat mumpuni.
+3. **Konsistensi Data:** DataStore menjamin konsistensi transaksional, sangat aman saat diakses dari berbagai thread.
 
 ---
 
-## Langkah 1: Menambahkan Dependensi yang Diperlukan
+## Arsitektur Caching yang Akan Kita Bangun
 
-Langkah pertama, tambahkan dependensi Jetpack DataStore dan SDK Gemini (Google AI Client) ke dalam file `build.gradle.kts` (modul `:app`) Anda:
+Strategi caching yang akan kita terapkan mengikuti pola **Cache-Aside (Lazy Loading)**:
+
+```
+[User Input Prompt] 
+       │
+       ▼
+[Hash Prompt (MD5)] ──> [Cek di DataStore] ──(Ada & Belum Expired)──> [Return Cached Data]
+       │                                                                      ▲
+  (Tidak Ada / Expired)                                                       │
+       │                                                                      │
+       ▼                                                                      │
+[Panggil Gemini API] ──> [Simpan Hasil & Timestamp ke DataStore] ──────────────┘
+```
+
+Untuk mengidentifikasi cache, kita akan mengubah teks prompt menjadi **MD5 Hash** yang unik sebagai *key* di DataStore. Setiap cache akan memiliki waktu kedaluwarsa (TTL - Time to Live) agar informasi tetap relevan.
+
+---
+
+## Langkah 1: Setup Dependensi
+
+Tambahkan dependensi berikut pada file `build.gradle.kts` (modul `:app`):
 
 ```kotlin
 dependencies {
-    // Jetpack DataStore Preferences
+    // Jetpack DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // Google AI SDK untuk Gemini API
+    // Google Gemini SDK
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
-    // Lifecycle & Coroutines
+    // Coroutines & Lifecycle
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // Gson untuk Serialisasi Objek Cache
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 ```
 
 ---
 
-## Langkah 2: Membuat DataStore Manager dengan Fitur TTL (Time-To-Live)
+## Langkah 2: Membuat Model Cache dan Helper MD5
 
-Untuk menghemat token secara optimal, kita tidak bisa menyimpan cache selamanya. Kita harus menerapkan mekanisme *Time-To-Live* (TTL). Jika cache sudah melewati batas waktu tertentu (misalnya 1 jam), aplikasi harus melakukan request baru ke API Gemini.
+Kita perlu menyimpan dua informasi penting: teks jawaban dari Gemini dan *timestamp* kapan data tersebut disimpan.
 
-Buat kelas `GeminiCacheManager.kt` untuk mengelola penyimpanan dan pengambilan cache:
+### 1. Model Data Cache
+Buat file `CachedResponse.kt`:
+
+```kotlin
+data class CachedResponse(
+    val responseText: String,
+    val timestamp: Long
+)
+```
+
+### 2. Helper MD5 Hash
+Karena prompt user bisa sangat panjang dan mengandung karakter yang tidak valid untuk nama *key* di DataStore, kita enkripsi prompt tersebut menjadi MD5 hash string. Buat file `HashUtils.kt`:
+
+```kotlin
+import java.security.MessageDigest
+
+object HashUtils {
+    fun md5(input: String): String {
+        val md = MessageDigest.getInstance("MD5")
+        return md.digest(input.toByteArray()).joinToString("") {
+            "%02x".format(it)
+        }
+    }
+}
+```
+
+---
+
+## Langkah 3: Implementasi DataStore Cache Manager
+
+Sekarang, buat kelas `GeminiCacheManager` yang akan menangani penulisan, pembacaan, dan validasi masa aktif cache (TTL). Di sini kita menetapkan masa aktif cache selama **24 jam**.
 
 ```kotlin
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
-import java.security.MessageDigest
+import kotlinx.coroutines.flow.map
 
-// Ekstensi untuk inisialisasi DataStore
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "gemini_cache_prefs")
 
 class GeminiCacheManager(private val context: Context) {
+    private val gson = Gson()
+    private val cacheDurationMs = 24 * 60 * 60 * 1000L // 24 Jam
 
-    // Helper untuk mengubah prompt menjadi Hash SHA-256 agar aman digunakan sebagai Key
-    private fun hashPrompt(prompt: String): String {
-        val bytes = MessageDigest.getInstance("SHA-256").digest(prompt.toByteArray())
-        return bytes.joinToString("") { "%02x".format(it) }
-    }
+    // Mengambil data dari cache berdasarkan prompt
+    async fun getCachedResponse(prompt: String): String? {
+        val promptKey = stringPreferencesKey(HashUtils.md5(prompt))
+        val preferences = context.dataStore.data.first()
+        val json = preferences[promptKey] ?: return null
 
-    // Menyimpan respon beserta timestamp saat ini
-    suspend fun saveResponse(prompt: String, responseText: String) {
-        val hashedKey = hashPrompt(prompt)
-        val dataKey = stringPreferencesKey("data_$hashedKey")
-        val timestampKey = longPreferencesKey("time_$hashedKey")
+        return try {
+            val cachedData = gson.fromJson(json, CachedResponse::class.java)
+            val currentTime = System.currentTimeMillis()
 
-        context.dataStore.edit { preferences ->
-            preferences[dataKey] = responseText
-            preferences[timestampKey] = System.currentTimeMillis()
+            // Periksa apakah cache sudah kedaluwarsa
+            if (currentTime - cachedData.timestamp < cacheDurationMs) {
+                cachedData.responseText
+            } else {
+                // Hapus cache jika sudah kedaluwarsa
+                clearCache(prompt)
+                null
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
-    // Mengambil respon jika belum kedaluwarsa (TTL: 1 Jam)
-    suspend fun getCachedResponse(prompt: String, ttlMillis: Long = 3600000): String? {
-        val hashedKey = hashPrompt(prompt)
-        val dataKey = stringPreferencesKey("data_$hashedKey")
-        val timestampKey = longPreferencesKey("time_$hashedKey")
+    // Menyimpan data ke cache
+    suspend fun saveToCache(prompt: String, responseText: String) {
+        val promptKey = stringPreferencesKey(HashUtils.md5(prompt))
+        val cacheData = CachedResponse(
+            responseText = responseText,
+            timestamp = System.currentTimeMillis()
+        )
+        val json = gson.toJson(cacheData)
 
-        val preferences = context.dataStore.data.first()
-        val cachedTime = preferences[timestampKey] ?: 0L
-        val currentTime = System.currentTimeMillis()
+        context.dataStore.edit { preferences ->
+            preferences[promptKey] = json
+        }
+    }
 
-        // Validasi apakah cache masih berlaku
-        return if (currentTime - cachedTime < ttlMillis) {
-            preferences[dataKey]
-        } else {
-            null // Cache kedaluwarsa atau tidak ditemukan
+    // Menghapus spesifik cache
+    private suspend fun clearCache(prompt: String) {
+        val promptKey = stringPreferencesKey(HashUtils.md5(prompt))
+        context.dataStore.edit { preferences ->
+            preferences.remove(promptKey)
         }
     }
 }
@@ -106,9 +169,9 @@ class GeminiCacheManager(private val context: Context) {
 
 ---
 
-## Langkah 3: Membuat Repository dengan Strategi "Cache-First"
+## Langkah 4: Membuat Repository dengan Logika Caching
 
-Sekarang kita akan membuat `GeminiRepository.kt` yang mengintegrasikan SDK Gemini dengan `GeminiCacheManager`. Strategi yang kita gunakan adalah **Cache-First**: periksa DataStore terlebih dahulu, jika data kosong atau kedaluwarsa, baru panggil API Gemini.
+Selanjutnya, buat `GeminiRepository` untuk menggabungkan Gemini API SDK dengan `GeminiCacheManager`.
 
 ```kotlin
 import com.google.ai.client.generativeai.GenerativeModel
@@ -117,25 +180,24 @@ class GeminiRepository(
     private val cacheManager: GeminiCacheManager,
     private val generativeModel: GenerativeModel
 ) {
-
-    suspend fun generateContentWithCache(prompt: String): String {
-        // 1. Coba ambil dari DataStore Cache
-        val cachedResult = cacheManager.getCachedResponse(prompt)
-        if (cachedResult != null) {
-            return cachedResult // Mengembalikan data cache tanpa memakan kuota API
+    suspend fun generateContent(prompt: String): String {
+        // 1. Coba ambil dari cache lokal terlebih dahulu
+        val cachedResponse = cacheManager.getCachedResponse(prompt)
+        if (cachedResponse != null) {
+            return cachedResponse // Mengembalikan cache tanpa memakan token API
         }
 
-        // 2. Jika tidak ada cache, panggil Gemini API
+        // 2. Jika tidak ada di cache, panggil Gemini API
         return try {
             val response = generativeModel.generateContent(prompt)
-            val responseText = response.text ?: "Tidak ada respon dari model."
-            
-            // 3. Simpan hasil respon baru ke dalam Cache
-            cacheManager.saveResponse(prompt, responseText)
+            val responseText = response.text ?: throw Exception("Empty response from Gemini")
+
+            // 3. Simpan hasil respons baru ke cache lokal untuk penggunaan berikutnya
+            cacheManager.saveToCache(prompt, responseText)
             
             responseText
         } catch (e: Exception) {
-            "Error menghubungi server: ${e.localizedMessage}"
+            "Error: ${e.localizedMessage}"
         }
     }
 }
@@ -143,18 +205,21 @@ class GeminiRepository(
 
 ---
 
-## Langkah 4: Implementasi di ViewModel
+## Langkah 5: Penerapan di ViewModel
 
-Gunakan ViewModel untuk mengelola state UI dan memanggil repositori secara asinkron menggunakan cakupan Coroutine (`viewModelScope`).
+Gunakan ViewModel untuk memicu proses pemanggilan ini secara aman di dalam scope siklus hidup Android.
 
 ```kotlin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class GeminiViewModel(private val repository: GeminiRepository) : ViewModel() {
+class GeminiViewModel(
+    private val repository: GeminiRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState
@@ -162,7 +227,7 @@ class GeminiViewModel(private val repository: GeminiRepository) : ViewModel() {
     fun askGemini(prompt: String) {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
-            val result = repository.generateContentWithCache(prompt)
+            val result = repository.generateContent(prompt)
             _uiState.value = UiState.Success(result)
         }
     }
@@ -177,21 +242,23 @@ sealed interface UiState {
 
 ---
 
-## Mengapa Beralih dari Prototipe ke Produksi Sangat Rumit?
+## Tantangan Nyata Menuju Skala Produksi (Agitasi Masalah)
 
-Membuat aplikasi berbasis AI yang berjalan mulus di perangkat lokal Anda adalah langkah awal yang menyenangkan. Namun, membawa proyek tersebut dari sekadar eksperimen di Google AI Studio hingga menjadi aplikasi siap rilis di Google Play Store memiliki tantangan teknis yang sangat berbeda.
+Mengimplementasikan caching lokal menggunakan DataStore di atas emulator atau perangkat debug pribadi Anda memang terlihat sangat mulus dan mudah diselesaikan dalam beberapa menit saja. 
 
-Bagi pemula atau tim kecil, mengonfigurasi proyek ke level produksi seringkali terasa membingungkan karena kompleksitas DevOps Android. Anda harus memikirkan:
-* **Keamanan API Key:** Menyimpan API Key langsung di kode sumber (*hardcoded*) sangat rawan dibobol. Mengonfigurasi enkripsi menggunakan Keystore atau memisahkan API Key lewat Gradle Secrets memerlukan ketelitian tinggi.
-* **Optimasi R8/Proguard:** Saat merilis versi *release*, obfuscation sering kali merusak library Google AI Studio jika aturan Proguard tidak ditulis dengan benar.
-* **Sinkronisasi State:** Mengelola siklus hidup komponen Android agar tidak terjadi kebocoran memori saat melakukan request API asinkron yang panjang.
+Namun, ketika Anda mulai bersiap membawa aplikasi Android berbasis kecerdasan buatan ini dari **Google AI Studio ke tahap produksi (Production-Ready)**, Anda akan mulai menyadari bahwa kenyataannya jauh lebih rumit dari sekadar menulis kode *repository*. 
 
-Tantangan-tantangan ini membutuhkan jam terbang tinggi dalam arsitektur software dan manajemen siklus rilis (*release pipeline*) agar aplikasi tidak hanya cerdas, tetapi juga aman, ringan, dan tidak mudah *crash* di perangkat pengguna.
+Berikut adalah beberapa kompleksitas tingkat lanjut yang akan segera Anda hadapi:
+1. **Keamanan API Key:** Menyimpan API Key Gemini langsung di dalam kode (*hardcoded*) adalah kesalahan fatal yang membuat kuota Anda rentan dicuri orang lain melalui teknik *reverse-engineering*. Anda harus mengonfigurasi pengamanan ketat menggunakan Android Keystore, NDK (C++), atau setup *Backend Proxy*.
+2. **Sinkronisasi Cache Multi-Device:** Bagaimana jika pengguna berpindah perangkat? DataStore hanya menyimpan data di lokal. Anda harus memikirkan enkripsi basis data awan yang sinkron namun tetap menghemat biaya komputasi.
+3. **Konfigurasi DevOps & CI/CD:** Mengintegrasikan rahasia API Key ini ke dalam pipeline build otomatis (seperti GitHub Actions) tanpa membocorkannya ke publik, sembari mempertahankan proses obfuscasi Proguard/R8 agar kode Anda tidak mudah didekompilasi.
+
+Bagi developer pemula atau tim kecil yang fokus pada pengembangan produk, mengonfigurasi seluruh pipeline keamanan, manajemen token, enkripsi tingkat lanjut, hingga konfigurasi rilis Google Play Console ini bisa menjadi mimpi buruk yang menyita waktu berminggu-minggu.
 
 ---
 
 ## Kesimpulan
 
-Dengan menerapkan strategi *caching* menggunakan Jetpack DataStore, Anda dapat memangkas penggunaan kuota token API Gemini secara signifikan, sekaligus memberikan pengalaman pengguna (*user experience*) yang jauh lebih responsif. Pengguna tidak perlu menunggu loading saat menanyakan hal yang sama berulang kali.
+Menerapkan strategi caching menggunakan Jetpack DataStore adalah solusi cerdas, murah, dan sangat efektif untuk menekan penggunaan token API Gemini di Android. Melalui MD5 hashing dan validasi TTL (Time to Live), aplikasi Anda tidak perlu membuang-buang kuota rate limit untuk pertanyaan pengguna yang sama.
 
-Mulai rancang aplikasi Android bertenaga AI Anda sekarang dengan arsitektur yang bersih, aman, dan ramah kantong!
+Membangun aplikasi cerdas yang hemat biaya adalah kunci sukses agar aplikasi Anda dapat bertahan dan berkembang di pasar global!
