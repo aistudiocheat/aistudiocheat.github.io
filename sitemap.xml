@@ -2,127 +2,133 @@
 <urlset xmlns="http://sitemaps.org">
   <url>
     <loc>https://aistudiocheat.github.io/</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/mengenal-keystore-dan-sha-256-langkah-wajib-sebelum-merilis-aplikasi-android-ai-ke-publik</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/arsitektur-mvvm-yang-benar-untuk-mengelola-state-output-google-ai-studio-di-android-studio</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/Bahaya-Aplikasi-Android-WebView-Hasil-AI-Instan-Rawan-Ditolak-Google-Play</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/Cara-Mengunci-API-Key-di-GitHub-Actions-Agar-Saldo-Google-Tidak-Dikuras-Hacker</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/tips-vibe-coding-bikin-prototype-aplikasi-android-cepat-lewat-google-ai-studio</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/cara-mengatur-layout-ui-android-agar-rapi-saat-menggunakan-elemen-ai-dari-google-ai-studio</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/kenapa-aplikasi-android-buatan-google-ai-studio-tidak-bisa-langsung-di-upload-ke-play-store</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/panduan-membuat-aplikasi-chatbot-android-menggunakan-template-google-ai-studio</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/cara-membuat-pipeline-cicd-github-actions-untuk-otomatisasi-build-apk-aplikasi-android-ai-anda</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/strategi-caching-menggunakan-datastore-untuk-menghemat-kuota-token-api-gemini-di-android</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aistudiocheat.github.io/#article/mengatasi-kendala-layout-thrashing-saat-streaming-respons-gemini-api-di-jetpack-compose</loc>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/mengatasi-error-ketergantungan-dependency-gradle-saat-memasukkan-sdk-google-ai-terbaru-ke-android-studio</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/komparasi-app-android-prototype-produksi</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/cara-mengamankan-gemini-api-key-menggunakan-firebase-vertex-ai-di-android</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/cara-cepat-mengubah-file-zip-dari-google-ai-studio-menjadi-project-android-studio-yang-siap-dicoding</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/panduan-menyusun-android-app-bundle-aab-dan-pengujian-internal-di-google-play-console-untuk-aplikasi-ai</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/menghubungkan-database-room-dengan-hasil-output-text-dari-gemini-api-di-android-studio</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/panduan-konfigurasi-proguard-dan-r8-untuk-mengamankan-kode-aplikasi-android-berbasis-gemini-ai</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/cara-handle-error-connection-timeout-dan-internet-terputus-saat-aplikasi-memanggil-google-ai-studio</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/cara-mengatasi-error-api-key-bocor-saat-export-project-dari-google-ai-studio-ke-android-studio</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://aistudiocheat.github.io/#article/cara-mengatur-retrofit-dan-okhttpclient-untuk-handle-timeout-panjang-pada-model-gemini-pro</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
