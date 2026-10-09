@@ -1,174 +1,132 @@
 ---
 title: "Mengatasi Kendala Layout Thrashing saat Streaming Respons Gemini API di Jetpack Compose"
-date: "2026-09-23"
+date: "2026-10-09"
 excerpt: "Pelajari panduan praktis mengatasi kendala teknis saat mengembangkan, mengamankan, atau merilis aplikasi Android berbasis Google AI Studio."
 tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 ---
 
-Mengintegrasikan Large Language Model (LLM) seperti Gemini API ke dalam aplikasi Android memberikan dimensi interaktivitas baru yang luar biasa. Salah satu fitur terbaiknya adalah *streaming response* (menggunakan `generateContentStream`), di mana pengguna dapat melihat teks dihasilkan secara *real-time*, kata demi kata, mirip seperti ChatGPT.
+Mengintegrasikan Generative AI ke dalam aplikasi Android menggunakan Gemini API membawa dimensi baru dalam interaksi pengguna. Salah satu fitur terbaiknya adalah kemampuan *streaming* (`generateContentStream`), yang memungkinkan teks respons ditampilkan secara bertahap (karakter demi karakter atau kata demi kata) tanpa harus menunggu seluruh respons selesai di-generate.
 
-Namun, di balik keindahan UX ini, terdapat tantangan performa yang serius di sisi frontend, khususnya jika Anda menggunakan **Jetpack Compose**. Fenomena ini disebut **Layout Thrashing** (atau dalam konteks Compose: *excessive recomposition* dan *repeated measurement passes*). 
+Namun, dari sudut pandang UI/UX dan performa Android, *streaming* data real-time ini membawa tantangan besar: **Layout Thrashing**. 
 
-Artikel ini akan mengupas tuntas mengapa hal ini terjadi dan bagaimana cara mengatasinya agar aplikasi Android Anda tetap berjalan mulus di 60fps (atau 120fps) bahkan saat menerima ribuan karakter per detik dari Gemini API.
-
----
-
-## Memahami Masalah: Mengapa Streaming Gemini Menyebabkan Layout Thrashing?
-
-Dalam Jetpack Compose, UI bersifat deklaratif. Ketika state berubah, Compose akan melakukan **Recomposition** (rekomposisi) untuk memperbarui tampilan.
-
-Saat Anda melakukan streaming dari Gemini API, Anda menerima potongan teks (*chunks*) dalam interval milidetik yang sangat cepat. Jika Anda memperbarui state String secara langsung setiap kali *chunk* baru tiba, hal berikut akan terjadi:
-
-1. **Rekomposisi Berantai:** Composable `Text` yang menampilkan jawaban akan merekomposisi dirinya sendiri secara konstan.
-2. **Layout Phase Overload:** Setiap kali teks bertambah, Compose harus mengukur ulang (*measure*) lebar dan tinggi teks baru, serta memposisikan ulang (*layout*) elemen-elemen di sekitarnya (seperti bubble chat, tombol, atau scroll position).
-3. **CPU Spike:** Proses kalkulasi layout teks (terutama dengan *auto-wrapping* dan *dynamic height*) adalah operasi berat. Jika terjadi puluhan kali dalam satu detik, CPU akan mengalami *spike*, menyebabkan *dropped frames* (aplikasi terlihat patah-patah/laggy).
+Artikel ini akan mengupas tuntas mengapa *layout thrashing* terjadi saat *streaming* Gemini API di Jetpack Compose dan bagaimana cara mengatasinya dengan teknik arsitektur serta optimasi state yang tepat.
 
 ---
 
-## Langkah 1: Gunakan State Buffering (Throttling) pada Coroutine Flow
+## Apa itu Layout Thrashing di Jetpack Compose?
 
-Solusi pertama adalah membatasi seberapa sering UI diperbarui. Pengguna tidak akan menyadari jika teks diperbarui setiap 50–100 milidetik sekali, alih-alih setiap 2 milidetik. Kita bisa menggunakan operator flow untuk melakukan *buffer* atau *throttle*.
+Dalam arsitektur UI deklaratif seperti Jetpack Compose, UI digambar ulang (*recompose*) setiap kali ada perubahan *state*. Pada skenario *streaming* Gemini API, data baru tiba sangat cepat (bisa puluhan kali dalam satu detik).
 
-Berikut adalah implementasi `ViewModel` menggunakan Kotlin Coroutines untuk mengelompokkan emisi data dari Gemini API:
+Jika Anda tidak mengoptimalkan bagaimana data ini dikonsumsi, setiap fragmen teks baru yang masuk akan memicu:
+1. **Recomposition:** Fungsi composable membaca state baru dan berjalan ulang.
+2. **Relayout (Measurement & Placement):** Compose mengukur ulang ukuran (`Width` & `Height`) dari komponen teks dan kontainer induknya (misalnya, bubble chat, list item, atau scroll container) karena panjang teks yang terus berubah.
+3. **Redraw:** Piksel baru digambar ke layar.
+
+Ketika fase *measurement* dan *layout* ini terjadi terlalu sering dalam waktu yang sangat singkat, hal ini disebut **Layout Thrashing**. Gejalanya meliputi:
+* Tampilan UI yang patah-patah (*jank*) atau FPS drop secara drastis.
+* Efek visual "melompat" (komponen di bawah teks bergeser naik-turun secara agresif).
+* Konsumsi baterai dan CPU yang melonjak tinggi.
+
+---
+
+## Solusi Praktis Mengatasi Layout Thrashing
+
+Berikut adalah langkah-langkah optimasi yang dapat Anda terapkan pada proyek Jetpack Compose Anda.
+
+### 1. Memisahkan State Pengirim (Emit) dengan State UI (Throttling)
+
+Masalah utama adalah frekuensi pembaruan UI yang terlalu tinggi. Kita bisa mengatasinya dengan melakukan *throttling* atau *buffering* pada aliran data (`Flow`) dari Gemini API sebelum memperbarui UI State.
+
+Bandingkan pendekatan langsung vs optimasi menggunakan Rx/Flow operators:
 
 ```kotlin
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.google.ai.client.generativeai.GenerativeModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.collectIndexed
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-
-class ChatViewModel(private val generativeModel: GenerativeModel) : ViewModel() {
-
-    private val _uiState = MutableStateFlow("")
-    val uiState = _uiState.asStateFlow()
-
-    fun startStreamingResponse(prompt: String) {
-        viewModelScope.launch {
-            _uiState.value = ""
-            var accumulatedText = ""
-            
-            try {
-                generativeModel.generateContentStream(prompt)
-                    .collect { response ->
-                        accumulatedText += response.text ?: ""
-                        
-                        // Buffer taktik: Update UI hanya jika ada teks baru,
-                        // berikan delay mikro untuk mencegah overload main thread
-                        _uiState.value = accumulatedText
-                        delay(30) // Throttle aman untuk mata manusia & CPU
-                    }
-            } catch (e: Exception) {
-                _uiState.value = "Error: ${e.localizedMessage}"
-            }
-        }
+// TIDAK DIREKOMENDASIKAN: UI terupdate setiap kali ada chunk kecil masuk
+geminiRepository.generateStream(prompt)
+    .collect { chunk ->
+        uiState.text += chunk.text
     }
-}
 ```
 
-*Catatan: Penggunaan `delay(30)` memberikan waktu bernapas bagi UI Thread untuk menyelesaikan fase layout sebelum menerima update teks berikutnya.*
+```kotlin
+// DIREKOMENDASIKAN: Menggunakan Buffer atau Conflate untuk membatasi frekuensi update
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.conflate
 
----
+fun streamResponseWithLimit(prompt: String) = flow {
+    var accumulatedText = ""
+    geminiRepository.generateStream(prompt).collect { chunk ->
+        accumulatedText += chunk.text
+        emit(accumulatedText)
+        // Berikan jeda minimal 16ms (setara 60 FPS) untuk mencegah overload UI
+        delay(16) 
+    }
+}.conflate() // Menghindari penumpukan emisi yang belum terproses
+```
 
-## Langkah 2: Isolasi Rekomposisi dengan Composable Terpisah
+### 2. Gunakan `derivedStateOf` untuk Menghindari Recomposition Tidak Perlu
 
-Jangan biarkan seluruh layar merekomposisi dirinya hanya karena satu komponen teks sedang melakukan streaming. Isolasi komponen teks tersebut ke dalam Composable-nya sendiri dan gunakan parameter bertipe `State<T>` atau fungsi lambda untuk membaca state secara *deferred* (ditunda).
-
-Mari buat Composable `StreamingTextBubble` yang efisien:
+Saat menampilkan teks panjang yang terus bertambah, pastikan Anda tidak memicu recomposition pada seluruh layar. Gunakan `derivedStateOf` atau batasi pembacaan state hanya pada komponen terkecil yang membutuhkannya.
 
 ```kotlin
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
 @Composable
-fun StreamingTextBubble(
-    textProvider: () -> String, // Menggunakan lambda untuk mencegah recomposition pada parent
-    modifier: Modifier = Modifier
-) {
+fun ChatBubble(messageFlow: StateFlow<String>) {
+    // Membaca state secara lokal di dalam Composable terkecil
+    val messageText by messageFlow.collectAsStateWithLifecycle()
+
     Box(
-        modifier = modifier
-            .background(Color(0xFFF1F1F1), shape = RoundedCornerShape(12.dp))
-            .padding(16.dp)
+        modifier = Modifier
+            .padding(8.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
+        // Hanya Text ini yang akan di-recompose, bukan Box atau parent di atasnya
         Text(
-            text = textProvider(), // State dibaca langsung di dalam Text composable target
-            fontSize = 16.sp,
-            color = Color.Black
+            text = messageText,
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
 ```
 
-Dengan meneruskan `textProvider: () -> String` (bukan langsung `String`), Composable induk yang memanggil `StreamingTextBubble` tidak akan ikut merekomposisi ulang setiap kali teks berubah. Hanya Composable `Text` internal yang akan diperbarui.
+### 3. Terapkan Tinggi/Ukuran Statis atau Placeholder pada List Item
 
----
+Jika Anda menampilkan teks streaming di dalam `LazyColumn`, perubahan tinggi teks yang dinamis akan memaksa `LazyColumn` mengukur ulang seluruh item di atas dan di bawahnya.
 
-## Langkah 3: Gunakan LazyListState dengan Efisien
-
-Jika Anda menampilkan teks streaming ini di dalam sebuah daftar chat (`LazyColumn`), autoscroll ke bawah saat teks bertambah dapat memperparah Layout Thrashing. Pastikan Anda hanya melakukan scroll ketika memang ada penambahan baris yang signifikan, dan bungkus dengan `derivedStateOf`.
-
-Berikut contoh implementasi chat screen:
+Untuk mencegah *layout jumping*:
+- Gunakan `Modifier.animateContentSize()` dengan hati-hati untuk memperhalus transisi ukuran.
+- Jika memungkinkan, tentukan tinggi minimum (`Modifier.defaultMinSize(minHeight = ... )`) untuk mengurangi kalkulasi ukuran dari nol.
 
 ```kotlin
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-
 @Composable
-fun ChatScreen(viewModel: ChatViewModel) {
-    val streamText by viewModel.uiState.collectAsState()
-    val listState = rememberLazyListState()
-
-    // Optimasi scroll: Hanya scroll ke bawah jika item terakhir terlihat
-    val isAtBottom by remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val visibleItemsInfo = layoutInfo.visibleItemsInfo
-            if (layoutInfo.totalItemsCount == 0) {
-                true
-            } else {
-                val lastVisibleItem = visibleItemsInfo.lastOrNull()
-                lastVisibleItem != null && lastVisibleItem.index == layoutInfo.totalItemsCount - 1
-            }
-        }
-    }
-
-    LaunchedEffect(streamText) {
-        if (isAtBottom && streamText.isNotEmpty()) {
-            listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
-        }
-    }
-
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize()
+fun StreamingChatItem(text: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .animateContentSize() // Memperhalus perubahan ukuran kontainer
     ) {
-        // Item chat lainnya...
-        
-        item {
-            StreamingTextBubble(
-                textProvider = { streamText }
-            )
+        Text(
+            text = text,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+```
+
+### 4. Gunakan Key yang Stabil pada LazyColumn
+
+Saat mengalirkan data ke dalam daftar chat, pastikan setiap item chat memiliki kunci (`key`) unik yang stabil. Ini membantu Jetpack Compose mengenali item mana yang benar-benar berubah, sehingga tidak mengukur ulang seluruh daftar.
+
+```kotlin
+@Composable
+fun ChatScreen(chatMessages: List<ChatMessage>) {
+    LazyColumn {
+        items(
+            items = chatMessages,
+            key = { message -> message.id }, // Gunakan ID unik, jangan gunakan index!
+            contentType = { message -> message.type }
+        ) { message ->
+            StreamingChatItem(text = message.content)
         }
     }
 }
@@ -176,24 +134,41 @@ fun ChatScreen(viewModel: ChatViewModel) {
 
 ---
 
-## Langkah 4: Terapkan Penjadwalan Profiling dengan Baseline Profiles
+## Arsitektur Aliran Data (Data Flow) yang Ideal
 
-Untuk memastikan runtime Android (ART) mengompilasi kode kritis Anda sebelum aplikasi dijalankan (AOT - *Ahead of Time*), buat **Baseline Profile** khusus untuk skenario *chat streaming* Anda. Ini mengurangi waktu kompilasi JIT (*Just-In-Time*) saat teks Gemini dirender secara intensif.
+Untuk mengimplementasikan solusi di atas, berikut adalah arsitektur bersih (*Clean Architecture*) dari ViewModel hingga UI Composable:
 
-Tambahkan dependensi Baseline Profile Generator di modul Gradle Anda dan rekam interaksi saat teks sedang di-stream. Hal ini akan mengurangi *jank* secara drastis pada perangkat kelas menengah ke bawah.
+```kotlin
+class GeminiViewModel(private val googleAiRepository: GoogleAiRepository) : ViewModel() {
+
+    private val _chatState = MutableStateFlow<Map<String, String>>(emptyMap())
+    val chatState = _chatState.asStateFlow()
+
+    fun sendPrompt(messageId: String, prompt: String) {
+        viewModelScope.launch {
+            googleAiRepository.streamResponse(prompt)
+                .conflate()
+                .collect { partialText ->
+                    _chatState.update { currentMap ->
+                        currentMap.toMutableMap().apply {
+                            put(messageId, (get(messageId) ?: "") + partialText)
+                        }
+                    }
+                }
+        }
+    }
+}
+```
 
 ---
 
-## Menghadapi Realitas Pengembangan Aplikasi AI saat ini
+## Rumitnya Membawa Proyek Google AI Studio ke Tahap Produksi
 
-Menerapkan trik performa Jetpack Compose seperti di atas memang sangat memuaskan ketika Anda melihat UI berjalan mulus tanpa lag. Namun, mengoptimalkan rendering hanyalah satu dari sekian banyak tantangan nyata dalam siklus hidup pengembangan aplikasi Android bertenaga AI.
+Mengatasi masalah performa mikro seperti *layout thrashing* di emulator lokal hanyalah puncak gunung es dari pengembangan aplikasi Android berbasis AI. Saat Anda mulai melangkah dari prototipe sederhana di Google AI Studio menuju aplikasi rilis (produksi) yang siap pakai, Anda akan dihadapkan pada labirin teknis yang jauh lebih rumit:
 
-Bagi banyak developer dan tim produk, melangkah keluar dari kenyamanan Google AI Studio (tempat Anda bermain-main dengan prompt) untuk masuk ke fase produksi nyata adalah proses yang sangat rumit dan melelahkan. 
+* **Keamanan API Key:** Menyimpan API Key Gemini langsung di dalam kode aplikasi (*hardcoded*) adalah celah keamanan fatal. Anda harus membangun arsitektur *backend proxy* atau mengimplementasikan sistem enkripsi dan obfuskasi tingkat lanjut (seperti ProGuard/R8 khusus dan Firebase App Check).
+* **Manajemen Kuota dan Biaya (Rate Limiting):** Tanpa pembatasan yang tepat, pengguna nakal dapat mengeksploitasi aplikasi Anda, menghabiskan kuota API, dan membengkakkan tagihan Google AI Studio Anda dalam hitungan jam.
+* **Integrasi CI/CD:** Mengonfigurasi *pipeline* DevOps untuk membangun, menguji, dan merilis aplikasi AI secara otomatis tanpa mengekspos variabel lingkungan (*environment variables*) sensitif membutuhkan pemahaman mendalam tentang Gradle, GitHub Actions, atau GitLab CI.
+* **Penanganan Kegagalan Jaringan (Network Resiliency):** Mengelola koneksi internet yang tidak stabil saat *streaming* data besar, mengimplementasikan mekanisme *retry otomatis*, serta menyediakan mode luring (*offline-first states*).
 
-Anda harus memikirkan aspek DevOps dan arsitektur yang kompleks, seperti:
-*   **Keamanan API Key:** Bagaimana mengamankan API key Gemini agar tidak didekompilasi dari file APK (menggunakan App Check atau Proxy Backend).
-*   **Arsitektur Multi-Platform/Multi-Device:** Memastikan aplikasi berjalan stabil di berbagai versi SDK Android dan ukuran layar yang berbeda.
-*   **Manajemen Rate Limiting:** Menangani kendala kuota API dari Google AI Studio dan menyiapkan sistem fallback.
-*   **CI/CD Pipeline:** Mengotomatiskan pengujian fungsionalitas AI agar tidak merusak fitur lama setiap kali model diperbarui.
-
-Mengonfigurasi semua infrastruktur ini dari nol sering kali menyita waktu berharga yang seharusnya bisa Anda gunakan untuk mematangkan fitur unik dan *user experience* aplikasi Anda.
+Bagi developer mandiri atau tim startup, mengonfigurasi seluruh rantai *development-to-production* ini sering kali memakan waktu lebih lama daripada menulis kode aplikasi itu sendiri.
