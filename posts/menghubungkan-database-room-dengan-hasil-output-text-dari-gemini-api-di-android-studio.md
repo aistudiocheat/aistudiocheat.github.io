@@ -1,71 +1,88 @@
 ---
 title: "Menghubungkan Database Room dengan Hasil Output Text dari Gemini API di Android Studio"
-date: "2026-10-27"
+date: "2026-11-09"
 excerpt: "Pelajari panduan praktis mengatasi kendala teknis saat mengembangkan, mengamankan, atau merilis aplikasi Android berbasis Google AI Studio."
 tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 ---
 
-Mengintegrasikan kemampuan *Generative AI* ke dalam aplikasi Android membuka peluang tanpa batas, mulai dari pembuat konten otomatis, asisten cerdas, hingga analisis teks interaktif. Google menyediakan **Google AI Client SDK for Android** untuk mempermudah pemanggilan **Gemini API**.
+Mengintegrasikan kemampuan *Generative AI* seperti Google Gemini API ke dalam aplikasi Android membuka peluang besar untuk menciptakan fitur-fitur cerdas—mulai dari asisten otomatis, pembuat ringkasan teks, hingga pembuatan konten dinamis.
 
-Namun, melakukan pemanggilan API secara terus-menerus (*live request*) memiliki beberapa kelemahan: konsumsi kuota API yang boros, ketergantungan pada koneksi internet, dan *latency* yang mengganggu kenyamanan pengguna. Solusi standar industri untuk masalah ini adalah menerapkan arsitektur **Offline-First** menggunakan **Room Database**.
+Namun, mengandalkan jaringan internet setiap kali pengguna ingin melihat riwayat respons AI bukanlah praktik yang efisien. Di sinilah **Room Database** berperan. Dengan menyimpan hasil *output text* Gemini API secara lokal, aplikasi Anda akan menjadi lebih cepat (*caching*), hemat kuota, hemat *rate limit* API, dan dapat diakses saat offline.
 
-Dalam panduan ini, kita akan membahas langkah demi langkah cara menangkap hasil *output* teks dari Gemini API dan menyimpannya secara lokal ke dalam database Room.
-
----
-
-## Prasyarat Proyek
-
-Sebelum memulai, pastikan Anda telah menyiapkan:
-1. **Android Studio** versi terbaru (Ladybug atau yang lebih baru direkomendasikan).
-2. **API Key dari Google AI Studio** (Dapatkan melalui [Google AI Studio](https://aistudio.google.com/)).
-3. Pemahaman dasar tentang Kotlin, Coroutines, dan Arsitektur MVVM.
+Artikel ini akan membimbing Anda secara teknis dan mendalam untuk menghubungkan **Gemini API** dengan **Room Database** menggunakan Kotlin dan pola Clean Architecture di Android Studio.
 
 ---
 
-## Langkah 1: Konfigurasi Dependensi Gradle
+## Prerequisites dan Konfigurasi Dependency
 
-Buka file `build.gradle.kts` (Module :app) dan tambahkan library yang dibutuhkan untuk Room Database dan Google AI Client SDK.
+Sebelum mulai menulis kode, pastikan Anda telah menyertakan dependensi yang dibutuhkan di file `build.gradle.kts` (Module :app).
 
 ```kotlin
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp) // Digunakan untuk Room Annotation Processor
+    id("kotlin-kapt") // Atau KSP jika menggunakan KSP
 }
 
 dependencies {
-    // Gemini AI SDK
+    // Google AI SDK untuk Android
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     // Room Database
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
 
-    // Lifecycle & Coroutines
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
+    // Coroutines & Lifecycle
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }
 ```
 
 ---
 
-## Langkah 2: Merancang Schema Room Database
+## Langkah 1: Amankan API Key Gemini
 
-Kita perlu membuat **Entity**, **DAO (Data Access Object)**, dan **Database Class** untuk menyimpan riwayat respons dari Gemini.
+Jangan pernah memasukkan *API Key* secara langsung (*hardcode*) di dalam kode Kotlin Anda. Gunakan `local.properties` untuk menjaga kerahasiaannya.
 
-### 1. Entity (`GeminiEntity.kt`)
-Entity ini merepresentasikan tabel di database yang menyimpan *prompt* pengguna beserta jawaban (*output*) dari Gemini.
+Tambahkan kunci di `local.properties`:
+```properties
+GEMINI_API_KEY=AIzaSyYourSecretKeyHere...
+```
+
+Konfigurasi di `build.gradle.kts`:
+```kotlin
+android {
+    ...
+    defaultConfig {
+        ...
+        val properties = java.util.Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        buildConfigField("STRING", "GEMINI_API_KEY", "\"${properties.getProperty("GEMINI_API_KEY")}\"")
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+}
+```
+
+---
+
+## Langkah 2: Merancang Database Room (Entity & DAO)
+
+Buat struktur tabel untuk menyimpan riwayat *prompt* pengiklan/pengguna beserta respons teks dari Gemini API.
+
+### 1. Entity: `GeminiHistoryEntity.kt`
 
 ```kotlin
-package com.example.geminiroom.data.local
+package com.example.airoomapp.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "gemini_history")
-data class GeminiEntity(
+data class GeminiHistoryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val prompt: String,
@@ -74,11 +91,10 @@ data class GeminiEntity(
 )
 ```
 
-### 2. DAO (`GeminiDao.kt`)
-DAO menyediakan fungsi SQL untuk membaca dan menulis data.
+### 2. DAO: `GeminiDao.kt`
 
 ```kotlin
-package com.example.geminiroom.data.local
+package com.example.airoomapp.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -89,22 +105,25 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface GeminiDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertHistory(entity: GeminiEntity)
+    suspend fun insertHistory(history: GeminiHistoryEntity)
 
     @Query("SELECT * FROM gemini_history ORDER BY timestamp DESC")
-    fun getAllHistory(): Flow<List<GeminiEntity>>
+    fun getAllHistory(): Flow<List<GeminiHistoryEntity>>
+
+    @Query("DELETE FROM gemini_history")
+    suspend fun clearAllHistory()
 }
 ```
 
-### 3. Database Class (`AppDatabase.kt`)
+### 3. Database: `AppDatabase.kt`
 
 ```kotlin
-package com.example.geminiroom.data.local
+package com.example.airoomapp.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
-@Database(entities = [GeminiEntity::class], version = 1, exportSchema = false)
+@Database(entities = [GeminiHistoryEntity::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun geminiDao(): GeminiDao
 }
@@ -112,63 +131,45 @@ abstract class AppDatabase : RoomDatabase() {
 
 ---
 
-## Langkah 3: Membuat Service Inisialisasi Gemini API
+## Langkah 3: Membuat Repository Layer Integration
 
-Buat *class wrapper* untuk menangani komunikasi langsung dengan Google AI Studio.
+Repository bertugas mengambil data dari Gemini API, lalu secara otomatis menyimpannya ke dalam Room Database sebelum diteruskan ke UI.
 
 ```kotlin
-package com.example.geminiroom.data.remote
+package com.example.airoomapp.data.repository
 
+import com.example.airoomapp.BuildConfig
+import com.example.airoomapp.data.local.GeminiDao
+import com.example.airoomapp.data.local.GeminiHistoryEntity
 import com.google.ai.client.generativeai.GenerativeModel
-
-class GeminiApiService(apiKey: String) {
-    // Menggunakan model Gemini 1.5 Flash untuk respons teks yang cepat
-    private val generativeModel = GenerativeModel(
-        modelName = "gemini-1.5-flash",
-        apiKey = apiKey
-    )
-
-    suspend fun generateContent(prompt: String): String {
-        val response = generativeModel.generateContent(prompt)
-        return response.text ?: "Tidak ada respons yang dihasilkan."
-    }
-}
-```
-
----
-
-## Langkah 4: Membangun Layer Repository (Jembatan API & Room)
-
-Repository bertindak sebagai *single source of truth*. Di sinilah logika pengambilan data dari Gemini API dijalankan, kemudian hasilnya langsung disimpan ke dalam Room Database.
-
-```kotlin
-package com.example.geminiroom.data.repository
-
-import com.example.geminiroom.data.local.GeminiDao
-import com.example.geminiroom.data.local.GeminiEntity
-import com.example.geminiroom.data.remote.GeminiApiService
 import kotlinx.coroutines.flow.Flow
 
-class GeminiRepository(
-    private val apiService: GeminiApiService,
-    private val dao: GeminiDao
-) {
-    // Mengambil seluruh riwayat dari Room sebagai Flow (Real-time updates)
-    val allHistory: Flow<List<GeminiEntity>> = dao.getAllHistory()
+class GeminiRepository(private val geminiDao: GeminiDao) {
 
-    suspend fun fetchAndSaveResponse(prompt: String): Result<String> {
+    // Inisialisasi Model Gemini Pro
+    private val generativeModel = GenerativeModel(
+        modelName = "gemini-1.5-flash",
+        apiKey = BuildConfig.GEMINI_API_KEY
+    )
+
+    // Ambil data lokal dari Room
+    val historyList: Flow<List<GeminiHistoryEntity>> = geminiDao.getAllHistory()
+
+    // Fungsi untuk memanggil API Gemini sekaligus menyimpan hasilnya ke Room
+    suspend fun generateAndSaveResponse(promptText: String): Result<String> {
         return try {
             // 1. Panggil Gemini API
-            val responseText = apiService.generateContent(prompt)
-            
-            // 2. Simpan hasil ke Room Database
-            val entity = GeminiEntity(
-                prompt = prompt,
-                responseText = responseText
-            )
-            dao.insertHistory(entity)
+            val response = generativeModel.generateContent(promptText)
+            val resultText = response.text ?: "Tidak ada respons dari AI."
 
-            Result.success(responseText)
+            // 2. Simpan Hasilnya ke Room Database
+            val entity = GeminiHistoryEntity(
+                prompt = promptText,
+                responseText = resultText
+            )
+            geminiDao.insertHistory(entity)
+
+            Result.success(resultText)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -178,60 +179,62 @@ class GeminiRepository(
 
 ---
 
-## Langkah 5: Implementasi pada ViewModel
+## Langkah 4: Menghubungkan ViewModel dengan UI
 
- ViewModel mengontrol status UI dan memanggil fungsi dari Repository menggunakan `viewModelScope`.
+ViewModel bertugas mengeksekusi *coroutine* dan memantau status loading, sukses, atau error.
 
 ```kotlin
-package com.example.geminiroom.ui
+package com.example.airoomapp.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.geminiroom.data.local.GeminiEntity
-import com.example.geminiroom.data.repository.GeminiRepository
-import kotlinx.coroutines.flow.SharingStarted
+import com.example.airoomapp.data.repository.GeminiRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class GeminiViewModel(private val repository: GeminiRepository) : ViewModel() {
 
-    // Mengubah Flow dari Room menjadi StateFlow yang siap dikonsumsi UI (Compose / XML)
-    val historyState: StateFlow<List<GeminiEntity>> = repository.allHistory
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
+    val uiState: StateFlow<UiState> = _uiState
 
-    fun sendPrompt(promptText: String) {
-        if (promptText.isBlank()) return
+    val history = repository.historyList
+
+    fun askGemini(prompt: String) {
+        if (prompt.isBlank()) return
 
         viewModelScope.launch {
-            repository.fetchAndSaveResponse(promptText)
+            _uiState.value = UiState.Loading
+            val result = repository.generateAndSaveResponse(prompt)
+            
+            result.onSuccess {
+                _uiState.value = UiState.Success(it)
+            }.onFailure { error ->
+                _uiState.value = UiState.Error(error.localizedMessage ?: "Terjadi kesalahan")
+            }
         }
     }
+}
+
+sealed interface UiState {
+    object Idle : UiState
+    object Loading : UiState
+    data class Success(val response: String) : UiState
+    data class Error(val message: String) : UiState
 }
 ```
 
 ---
 
-## Kompleksitas Integrasi AI ke Level Produksi
+## Tantangan Sebenarnya: Dari Prototype Google AI Studio ke Production App
 
-Langkah-langkah tutorial di atas bekerja secara ideal pada skala *development* lokal. Namun, menyatukan ekosistem Google AI Studio dan Room Database hingga siap dirilis ke Google Play Store (*production-ready*) menyimpan berbagai tantangan teknis tersendiri yang cukup kompleks, terutama bagi pengembang pemula.
+Membuat alur sederhana seperti tutorial di atas saat fase *prototyping* memang terlihat mudah. Namun, membawa integrasi Google AI Studio dan Room Database ke tahap **Production Ready** (Siap Rilis ke Play Store) adalah cerita yang sangat berbeda.
 
-Beberapa kendala DevOps dan arsitektur kritis yang sering ditemui di tingkat lanjut antara lain:
+Banyak pengembang pemula dan tim enterprise mengalami kendala serius saat memasuki tahap ini, seperti:
 
-1. **Keamanan API Key yang Rentan:** Mengeras (*hardcoding*) API Key Gemini di dalam Android Project sangat berbahaya karena mudah di-*decompile* menggunakan teknik *reverse engineering*. Diperlukan implementasi NDK (C++), Native Secrets Gradle Plugin, atau pembuatan Backend Proxy (seperti Firebase Cloud Functions).
-2. **Strategi Migrasi Database Room:** Ketika struktur data Gemini berkembang (misalnya menambahkan metadata token, referensi gambar/multimodal, atau kategori), kegagalan dalam mengonfigurasi `Room AutoMigration` dapat menyebabkan aplikasi *crash* secara massal pada perangkat pengguna (*Fatal Exception*).
-3. **Konfigurasi ProGuard / R8 Rules:** Proses *obfuscation* saat memicu *Build Release* sering kali merusak pemetaan deserialisasi JSON SDK AI atau komponen internal Room jika *keep rules* tidak dikonfigurasi dengan tepat.
-4. **Optimasi Latensi & Offline State:** Mengelola transisi UI saat koneksi internet terputus, batas kuota API tercapai (*Rate Limiting 429*), atau menyelaraskan status *cache* lokal dengan *remote server* membutuhkan arsitektur *error handling* yang sangat kuat.
-5. **CI/CD Pipeline Automation:** Mengatur variabel lingkungan (*Environment Variables*) untuk kunci API secara aman di dalam skrip integrasi berkelanjutan (*Continuous Integration*) seperti GitHub Actions atau Bitrise.
+1. **Keamanan API Key yang Rentan**: Menyimpan API Key di `local.properties` saja tidak cukup aman dari serangan *reverse engineering* (seperti Decompiling APK menggunakan APKTool/JADX). Di tingkat produksi, API Key harus dikelola via *Proxy Server*, Firebase App Check, atau dienkripsi via NDK (Native C++ code).
+2. **Manajemen Rate Limit & Robust Error Handling**: Gemini API memiliki batasan kuota (*QuotaExceededException*, HTTP 429). Jika tidak ditangani dengan mekanisme *retry backoff* dan manajemen *state* Room yang matang, aplikasi Anda akan sering *crash* atau *blank screen*.
+3. **Database Migration & Schema Evolution**: Saat fitur AI Anda berkembang (misalnya ingin menyimpan jumlah *tokens*, *model version*, atau gambar input *multimodal*), mengubah skema Room tanpa strategi *Migration* yang benar akan menyebabkan *App Crash* massal pada jutaan pengguna (*IllegalStateException*).
+4. **DevOps & Automasi Build (CI/CD)**: Pengujian otomatis (*unit test* pada DAO dan Repository), penanganan ProGuard/R8 Obfuscation agar *SDK Generative AI* tidak terhapus saat *minifyEnabled = true*, hingga otomatisasi penerbitan AAB ke Play Console.
 
----
-
-## Kesimpulan
-
-Menggabungkan Gemini API dengan Room Database adalah langkah strategis untuk menciptakan aplikasi Android berbasis AI yang cepat, responsif, dan hemat penggunaan jaringan. Dengan menyimpan *output* teks secara lokal, pengguna tetap dapat mengakses riwayat interaksi AI mereka kapan saja tanpa bergantung penuh pada jaringan internet.
-
-Pastikan Anda selalu memperhatikan standar arsitektur clean code, manajemen status (*state management*), serta lapisan keamanan kredensial sebelum mempublikasikan aplikasi Anda ke lingkungan produksi.
+Mengonfigurasi keseluruhan *pipeline* DevOps Android, arsitektur yang *scalable*, serta enkripsi tingkat tinggi ini sering kali menguras waktu dan tenaga yang tidak sedikit. Jika tidak ditangani oleh praktisi yang berpengalaman, celah keamanan dan kendala performa dapat berdampak buruk pada reputasi aplikasi Anda di mata pengguna.
