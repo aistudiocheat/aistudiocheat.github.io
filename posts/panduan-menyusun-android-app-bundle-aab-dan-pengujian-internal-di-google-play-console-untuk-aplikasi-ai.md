@@ -1,171 +1,197 @@
 ---
 title: "Panduan Menyusun Android App Bundle (AAB) dan Pengujian Internal di Google Play Console untuk Aplikasi AI"
-date: "2026-11-11"
+date: "2026-11-16"
 excerpt: "Pelajari panduan praktis mengatasi kendala teknis saat mengembangkan, mengamankan, atau merilis aplikasi Android berbasis Google AI Studio."
 tags: ["Android", "Google AI Studio", "Gemini API", "DevOps"]
 ---
 
-Perkembangan teknologi kecerdasan buatan (AI) yang masif membuat integrasi *Large Language Models* (LLM) seperti Gemini API dari Google AI Studio ke dalam aplikasi Android semakin populer. Namun, mendeploy aplikasi berbasis AI memiliki tantangan tersendiri: ukuran dependensi SDK yang membengkak, perlindungan API Key agar tidak bocor, hingga konfigurasi obfuscation yang berisiko merusak *data model* parsing JSON AI.
+Mengintegrasikan kecerdasan buatan (AI) seperti **Gemini API** dari **Google AI Studio** ke dalam aplikasi Android menawarkan potensi besar untuk menciptakan fitur-fitur yang responsif dan cerdas. Namun, alur kerja dari *prototyping* hingga aplikasi siap edar memiliki tantangan tersendiri—mulai dari tata kelola kunci API (*API Key*), optimasi ukuran *binary*, hingga mekanisme distribusi yang aman.
 
-Menggunakan format legacy APK untuk distribusi produksi sudah tidak direkomendasikan dan telah digantikan oleh **Android App Bundle (AAB)**. Dengan AAB, Google Play akan membuatkan APK yang dioptimalkan sesuai dengan konfigurasi perangkat pengguna (*split APKs*), sehingga ukuran unduhan menjadi jauh lebih kecil.
+Sebagai pengembang atau tim DevOps, Anda tidak lagi disarankan mengunggah format APK tradisional ke Google Play Store. Google menetapkan **Android App Bundle (AAB)** sebagai standar resmi. 
 
-Artikel ini memandu Anda secara teknis dari tahap pengamanan kode, *build* AAB, hingga distribusi di **Internal Testing Google Play Console** khusus untuk aplikasi berbasis AI.
+Artikel ini memuat panduan teknis mendalam tentang cara menyusun berkas AAB yang teroptimasi untuk aplikasi berbasis AI dan mendistribusikannya melalui jalur **Pengujian Internal (Internal Testing)** di Google Play Console.
 
 ---
 
-## Step 1: Amankan API Key Google AI Studio di Tingkat Build
+## 1. Amankan API Key Google AI Studio Sebelum Processing Build
 
-Kesalahan paling fatal yang sering dilakukan pengembang adalah menaruh API Key Gemini secara *hardcoded* di dalam kode Kotlin/Java. Kunci ini mudah diekstrak menggunakan teknik *reverse engineering* (dekompilasi APK).
+Tantangan utama pada aplikasi AI client-side adalah perlindungan kredensial. Jangan pernah menyalin (*hardcode*) API Key Gemini langsung di dalam kode Kotlin/Java atau menyimpan berkas `JSON` rahasia di direktori `assets`.
 
-Gunakan **Secrets Gradle Plugin** atau baca variabel dari `local.properties`:
+### Menggunakan Secrets Gradle Plugin
+Pendekatan arsitektur terbaik adalah memanfaatkan `secrets-gradle-plugin` agar API Key tersimpan di `local.properties` dan dibaca sebagai variabel `BuildConfig`.
 
-### 1. Tambahkan API Key di `local.properties`
-```properties
-# local.properties (Jangan pernah di-commit ke Git)
-GEMINI_API_KEY=AIzaSyYourSecretKeyFromGoogleAIStudio
-```
-
-### 2. Konfigurasi `build.gradle.kts` (Module :app)
-Pastikan fitur `buildConfig` diaktifkan untuk membaca variabel dari `local.properties`:
+1. Tambahkan dependensi plugin di `build.gradle.kts` (Project Level):
 
 ```kotlin
-import java.util.Properties
+// build.gradle.kts (Project Level)
+plugins {
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1" apply false
+}
+```
 
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(localPropertiesFile.inputStream())
+2. Terapkan plugin di `build.gradle.kts` (Module Level):
+
+```kotlin
+// build.gradle.kts (Module Level / app)
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
+    namespace = "com.example.aiapplication"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.ai.app"
-        minSdk = 24
+        applicationId = "com.example.aiapplication"
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
 
-        // Menyuntikkan API Key ke BuildConfig secara aman
-        val apiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
-        buildConfigField("String", "GEMINI_API_KEY", "\"$apiKey\"")
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    
     buildFeatures {
         buildConfig = true
     }
 }
 ```
 
+3. Isikan API Key Anda di berkas `local.properties` (berkas ini **harus** masuk ke `.gitignore`):
+
+```properties
+# local.properties
+GEMINI_API_KEY=AIzaSyD-EXAMPLE_KEY_GOOGLE_AI_STUDIO
+```
+
+4. Panggil variabel dalam kode Kotlin:
+
+```kotlin
+import com.google.ai.client.generativeai.GenerativeModel
+
+class AIService {
+    private val apiKey = BuildConfig.GEMINI_API_KEY
+    
+    private val generativeModel = GenerativeModel(
+        modelName = "gemini-1.5-flash",
+        apiKey = apiKey
+    )
+
+    suspend fun generateResponse(prompt: String): String? {
+        val response = generativeModel.generateContent(prompt)
+        return response.text
+    }
+}
+```
+
 ---
 
-## Step 2: Konfigurasi Optimization & ProGuard Rules untuk SDK AI
+## 2. Optimasi ProGuard/R8 untuk SDK AI dan Format AAB
 
-SDK AI seperti `google-genai` atau perpustakaan pendukung (*OkHttp*, *Retrofit*, *Moshi/Gson*, *Protobuf*) sering menggunakan refleksi (*reflection*). Jika *R8/ProGuard* mengecilkan (*shrink*) atau mengacak (*obfuscate*) kelas ini tanpa aturan yang benar, aplikasi AI Anda akan *crash* saat melakukan parsing *response* dari server.
+Aplikasi berbasis AI sering kali membawa dependensi yang cukup berat seperti `kotlinx.serialization`, `gRPC`, `OkHttp`, atau library pemrosesan data lokal (seperti TFLite). Saat mengompilasi menjadi AAB, *code shrinking* dan *obfuscation* R8 dapat merusak pemanggilan metode refleksif jika aturan ProGuard tidak dikonfigurasi dengan tepat.
 
-Buka file `proguard-rules.pro` dan tambahkan aturan khusus berikut:
+Tambahkan konfigurasi berikut pada berkas `proguard-rules.pro` Anda:
 
 ```proguard
-# Menjaga Data Class parsing JSON untuk Gemini API
+# Keeping Google AI SDK & gRPC Components
+-keep class com.google.ai.client.generativeai.** { *; }
+-dontwarn com.google.ai.client.generativeai.**
+
+# Serialization Rules (Retrofit / KotlinX Serialization)
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
 -keepclassmembers class * {
-    @com.google.gson.annotations.SerializedName <fields>;
+    @kotlinx.serialization.SerialName <fields>;
 }
 
-# Menjaga kelas model internal SDK AI agar tidak ter-obfuscate
--keep class com.google.ai.client.generativeai.** { *; }
--keep interface com.google.ai.client.generativeai.** { *; }
+# OkHttp Rules (digunakan oleh HTTP Client SDK AI)
+-dontwarn okhttp3.internal.platform.**
+-keepclassmembers class okhttp3.internal.sslsocket.Http2ExchangeCodec { *; }
+```
 
-# Jika Anda menggunakan Kotlin Coroutines & Flow untuk streaming teks AI
--keepclassmembers class kotlinx.coroutines.** { *; }
--dontwarn kotlinx.coroutines.**
+Aktifkan *shrinking* pada `build.gradle.kts` bagian `buildTypes`:
 
-# Protobuf (yang umum digunakan di SDK Google AI)
--keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
-    <fields>;
+```kotlin
+buildTypes {
+    release {
+        isMinifyEnabled = true
+        isShrinkResources = true
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
+    }
 }
 ```
 
 ---
 
-## Step 3: Membuat Signed Android App Bundle (AAB)
+## 3. Membuat Signed Android App Bundle (AAB)
 
-Langkah selanjutnya adalah membuat berkas `.aab` yang telah ditandatangani (*signed*) menggunakan Keystore produksi atau staging Anda.
+Format AAB memungkinkan Google Play menggunakan *Dynamic Delivery*, yang artinya pengguna hanya mengunduh kode dan aset (*locale*, resolusi layar, arsitektur CPU seperti `arm64-v8a`) yang cocok untuk perangkat mereka. Ini sangat penting untuk menjaga ukuran *installer* aplikasi AI tetap ramah kuota.
 
-### 1. Generate Keystore via Terminal (Opsional)
-Jika Anda belum memiliki Keystore, buat melalui CLI:
-
-```bash
-keytool -genkey -v -keystore my-ai-app-key.jks \
-  -alias my-ai-alias -keyalg RSA -keysize 2048 -validity 10000
-```
-
-### 2. Build AAB via Gradle Command Line
-Jalankan perintah Gradle berikut di terminal proyek Anda untuk membuat berkas release:
+### Membuat Signed AAB via Command Line (CI/CD Ready)
+Jika Anda menggunakan pipeline DevOps atau baris perintah, buat *Keystore* dan jalankan skrip build Gradle.
 
 ```bash
-# Untuk Linux / macOS
+# Command membuat keystore (jika belum ada)
+keytool -genkey -v -keystore my-ai-app-key.jks -keyalg RSA \
+-keysize 2048 -validity 10000 -alias my-key-alias
+
+# Jalankan kompilasi AAB Release
 ./gradlew bundleRelease
-
-# Untuk Windows PowerShell
-.\gradlew bundleRelease
 ```
 
-Hasil berkas AAB dapat ditemukan pada direktori:
+Hasil akhir berkas AAB akan tersimpan di direktori:
 `app/build/outputs/bundle/release/app-release.aab`
 
 ---
 
-## Step 4: Mengonfigurasi Pengujian Internal (Internal Testing) di Google Play Console
+## 4. Konfigurasi Pengujian Internal (Internal Testing) di Google Play Console
 
-Jalur *Internal Testing* adalah cara tercepat untuk mendistribusikan aplikasi kepada tim QA atau *beta tester* (hingga 100 akun) tanpa melalui proses peninjauan (*review*) aplikasi yang ketat dari Google.
+Jalur *Internal Testing* adalah mekanisme tercepat untuk membagikan aplikasi ke hingga 100 orang penguji (*testers*) tanpa harus melewati proses peninjauan (*review*) ketat dari tim Google Play yang memakan waktu lama.
 
-### Langkah-langkah Pengaturan:
+### Langkah 1: Buat Aplikasi Baru & Pilih Track
+1. Masuk ke **Google Play Console**.
+2. Pilih **Create app**, isi nama aplikasi, bahasa default, dan deklarasikan aplikasi sebagai *Free* atau *Paid*.
+3. Pada menu navigasi sebelah kiri, buka bagian **Testing** > **Internal testing**.
 
-1. **Buka Google Play Console** dan pilih aplikasi Anda.
-2. Pada menu bilah samping (*sidebar*), buka **Testing** > **Internal testing**.
-3. Klik tombol **Create new release** di pojok kanan atas.
-4. **Upload File AAB**: Unggah berkas `app-release.aab` yang telah di-*build*.
-5. **Set Up App Signing**: Pilih **Use Google-generated key** jika ini pertama kali Anda mengunggah aplikasi. Google Play akan mengelola kunci penandatanganan aplikasi secara aman.
-6. **Isi Release Notes**: Berikan catatan perubahan, misalnya: *"Integrasi Gemini API streaming response dan perbaikan bug UI chat."*
-7. Klik **Save** lalu **Next**, kemudian **Start rollout to Internal testing**.
+### Langkah 2: Buat Daftar Penguji (Testers List)
+1. Pilih tab **Testers**.
+2. Klik **Create email list**, beri nama daftar (misal: *Tim QA & Developer AI*).
+3. Masukkan alamat Gmail para penguji, lalu simpan.
+4. Pastikan centang daftar email tersebut pada halaman pengujian internal.
 
----
-
-## Step 5: Menambahkan Penguji Internal & Konfigurasi SHA-256 GCP
-
-Agar penguji dapat mengunduh aplikasi dan fungsi AI berjalan lancar:
-
-### 1. Tambahkan Daftar Penguji (Testers)
-* Buka tab **Testers** di menu Internal Testing.
-* Buat *Email List* baru dan masukkan alamat email Google para penguji.
-* Salin **Join on the web** atau **Join on Android** link dan bagikan ke tim Anda.
-
-### 2. PENTING: Mendaftarkan SHA-256 Play App Signing ke Google Cloud Console
-Ketika Anda mengunggah AAB, Google Play akan menandatangani ulang APK penguji menggunakan kunci *App Signing*. Jika Gemini API Key Anda dibatasi (*restricted*) berdasarkan *Package Name* dan *SHA-256 Fingerprint*, Anda **WAJIB** mendaftarkan fingerprint dari Play Console ke GCP:
-
-1. Di Play Console, buka **Setup** > **App Integrity**.
-2. Salin **SHA-256 certificate fingerprint** di bagian *App signing key certificate*.
-3. Buka **Google Cloud Console** > **APIs & Services** > **Credentials**.
-4. Edit API Key yang Anda gunakan untuk Google AI Studio.
-5. Tambahkan restriction **Android apps**, masukkan *Package Name* dan *SHA-256 Fingerprint* dari Play Console tadi.
+### Langkah 3: Rilis Rilis Baru (Create New Release)
+1. Di halaman *Internal testing*, klik **Create new release**.
+2. Unggah berkas `app-release.aab` yang telah disiapkan.
+3. Tunggu hingga sistem Google Play memproses metadata AAB (pemeriksaan *Package Name*, *Version Code*, dan struktur modul).
+4. Isi **Release notes** untuk memberi tahu penguji mengenai pembaruan fitur (misalnya: *"Integrasi prompt Gemini API v1.5 Flash"*).
+5. Klik **Save**, lalu pilih **Next** / **Review release**, dan klik **Start rollout to Internal testing**.
 
 ---
 
-## Tantangan & Kompleksitas Pipeline Rilis Aplikasi AI
+## 5. Menguji Aplikasi AI di Perangkat Target
 
-Mengonfigurasi aplikasi Android dari tahap purwarupa *Google AI Studio* hingga menjadi versi yang siap masuk ke jalur produksi sebenarnya menyimpan banyak kendala teknis yang tersembunyi. Bagi pemula maupun tim yang terbiasa fokus pada pengembangan *frontend*, pengelolaan rantai *DevOps* seluler ini sering kali menjadi hambatan besar.
+Setelah status rilis berubah menjadi *Available internal*, penguji yang terdaftar harus menerima tautan unduhan:
 
-Beberapa kendala rumit yang kerap ditemui antara lain:
-* **Mismatch Certificate SHA-256**: API Key AI menolak merespons (*HTTP 403 Forbidden*) di HP penguji karena beda *fingerprint* antara *Debug Key*, *Upload Key*, dan *Play Signing Key*.
-* **ProGuard Shrinking Regression**: Aplikasi berjalan mulus di *Debug mode*, tetapi mendadak *crash* saat di-*build* menjadi AAB *Release* akibat dependensi SDK AI yang terpotong oleh R8 compiler.
-* **Pengelolaan CI/CD Automation**: Mengatur *GitHub Actions* atau *GitLab CI* untuk mengotomatisasi *build* AAB, pengujian unit, hingga otomatis *deploy* ke Google Play API tanpa mengekspos Keystore dan API Key secara ceroboh.
-* **Dynamic Feature Modules**: Memisahkan modul library AI yang berat (*seperti TFLite model / ONNX Runtime*) menggunakan *Play Feature Delivery* agar ukuran awal pengunduhan aplikasi tetap ringan.
+1. Salin tautan pada bagian **How testers join** (misal: `https://play.google.com/apps/testing/com.example.aiapplication`).
+2. Kirim tautan ke penguji. Penguji wajib membuka tautan tersebut, memilih **Accept the invitation**, lalu mengunduh aplikasi langsung dari Google Play Store.
+3. **Validasi Integrasi AI**: Pastikan aplikasi terkoneksi ke jaringan, pengujian batasan *rate limit* Gemini API berjalan normal, dan tidak terjadi *crash* akibat aturan Obfuscation/R8 pada paket native.
 
-Proses konfigurasi ini membutuhkan ketelitian tinggi pada aspek keamanan, optimasi sistem, serta pemahaman mendalam tentang ekosistem Google Play Console dan Google Cloud Infrastructure.
+---
+
+## Kompleksitas Rantai Kerja DevOps Android & Integrasi AI
+
+Menyusun arsitektur aplikasi berbasis Google AI Studio dari tahap *prototype* hingga menjadi produk yang stabil di Google Play Console bukanlah proses yang instan. 
+
+Bagi pengembang indie, pendiri startup, maupun tim internal yang berfokus pada inovasi produk, mengurus berbagai konfigurasi teknis—mulai dari tata kelola *Keystore*, penyusunan `proguard-rules`, penanganan enkripsi kredensial API, *Dynamic Delivery* AAB, hingga penyesuaian regulasi *Play Integrity API* dan alur pengujian internal—sering kali menguras waktu serta sumber daya teknis.
+
+Jika konfigurasi build tidak tepat, Anda dapat mengalami kendala seperti *API Key leak*, kegagalan serialisasi data AI saat *runtime release*, hingga penolakan berkas oleh sistem Google Play. Memastikan setiap aspek DevOps dan kepatuhan sistem berjalan selaras membutuhkan presisi dan pemahaman mendalam atas ekosistem Android modern.
 
 ---
 
 ## Kesimpulan
 
-Menyusun Android App Bundle (AAB) dan menyalurkannya via pengujian internal Google Play Console adalah standar industri untuk menjamin kualitas aplikasi AI sebelum dilepas ke publik. Dengan mengamankan API key di level *build*, mengatur konfigurasi ProGuard secara pas, dan mendaftarkan SHA-256 Play Integrity dengan benar, aplikasi berbasis Gemini AI Anda akan berjalan stabil dan aman di berbagai perangkat penguji.
+Menyusun Android App Bundle (AAB) dan memanfaatkannya melalui saluran Pengujian Internal Google Play Console adalah pendekatan standar industri untuk mendistribusikan aplikasi AI dengan cepat, aman, dan efisien. Dengan memisahkan variabel lingkungan rahasia, mengoptimalkan aturan ProGuard untuk library AI, dan mengisolasi tahap pengujian, Anda dapat memastikan bahwa produk AI Anda siap dipasarkan dengan kualitas teknis terbaik.
